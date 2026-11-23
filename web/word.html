@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<title>word</title>
+<link rel="stylesheet" href="fonts/fonts.css" />
+<style>
+  :root { --pad: 30px; --gold: #f5d292; --rose: #ff9bb4; --ink: #221a14; --accent: #b45633; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: transparent;
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+  }
+
+  .wrap {
+    position: absolute;
+    inset: var(--pad);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Expanding shockwave ring on impact */
+  .ring {
+    position: absolute;
+    inset: 4px;
+    border-radius: 24px;
+    border: 2px solid rgba(245, 210, 146, 0.88);
+    opacity: 0;
+    transform: scale(0.45);
+    animation: shock 0.85s cubic-bezier(.16, 1, .3, 1) forwards;
+    pointer-events: none;
+  }
+  .tone-rose .ring { border-color: rgba(255, 165, 190, 0.9); }
+  .tone-ivory-hero .ring,
+  .tone-ivory-banner .ring { border-color: rgba(255, 240, 208, 0.92); }
+  @keyframes shock {
+    0%   { opacity: 0.95; transform: scale(0.48); }
+    100% { opacity: 0; transform: scale(1.16); }
+  }
+
+  .plaque {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 16px;
+    padding: 18px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+    opacity: 0;
+    transform: scale(1.85) rotate(var(--rot, 0deg));
+    animation: slam 0.72s cubic-bezier(.16, 1.26, .3, 1) forwards, hoverFloat 4.2s ease-in-out 0.8s infinite;
+  }
+
+  /* ---- TONE 1: GOLD OBSIDIAN VELVET ---- */
+  .tone-gold .plaque {
+    background: linear-gradient(155deg, #1f1711 0%, #0e0a08 65%, #19120c 100%);
+    border: 1px solid rgba(245, 210, 146, 0.48);
+    box-shadow:
+      0 14px 26px -6px rgba(0, 0, 0, 0.78),
+      0 0 22px rgba(245, 210, 146, 0.2),
+      inset 0 1px 0 rgba(255, 246, 224, 0.26);
+  }
+
+  /* ---- TONE 2: WINE ROSE VELVET ---- */
+  .tone-rose .plaque {
+    background: linear-gradient(155deg, #331420 0%, #16090e 65%, #271019 100%);
+    border: 1px solid rgba(255, 166, 192, 0.52);
+    box-shadow:
+      0 14px 26px -6px rgba(0, 0, 0, 0.8),
+      0 0 24px rgba(255, 130, 166, 0.24),
+      inset 0 1px 0 rgba(255, 234, 240, 0.26);
+  }
+
+  /* ---- TONE 3 & 4: LUXURY HANDMADE IVORY STATIONERY ---- */
+  .tone-ivory-hero .plaque,
+  .tone-ivory-banner .plaque {
+    background: linear-gradient(160deg, #fdf9f1 0%, #f3e7d1 100%);
+    border: 1px solid rgba(255, 250, 240, 0.9);
+    box-shadow:
+      0 14px 26px -6px rgba(0, 0, 0, 0.72),
+      0 0 24px rgba(245, 210, 146, 0.26),
+      inset 0 0 36px rgba(188, 152, 102, 0.18);
+  }
+
+  /* Moody photo silhouette behind dark velvet */
+  .bg-photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.24;
+    filter: saturate(0.72) contrast(1.18) blur(1.5px);
+    transform: scale(1.08);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .tone-ivory-hero .bg-photo,
+  .tone-ivory-banner .bg-photo {
+    opacity: 0.08;
+    filter: sepia(0.55) saturate(0.6) blur(2px);
+  }
+
+  .glaze {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: radial-gradient(ellipse 80% 75% at 50% 45%, transparent 15%, rgba(8, 5, 4, 0.72) 100%);
+  }
+  .tone-ivory-hero .glaze,
+  .tone-ivory-banner .glaze {
+    background: radial-gradient(ellipse 85% 80% at 50% 45%, transparent 30%, rgba(196, 156, 102, 0.18) 100%);
+  }
+
+  /* Delicate inset foil hairline frame + corner stars */
+  .inner-frame {
+    position: absolute;
+    inset: 8px;
+    border-radius: 10px;
+    border: 1px solid rgba(245, 210, 146, 0.34);
+    z-index: 2;
+    pointer-events: none;
+  }
+  .tone-rose .inner-frame { border-color: rgba(255, 174, 198, 0.36); }
+  .tone-ivory-hero .inner-frame,
+  .tone-ivory-banner .inner-frame { border-color: rgba(186, 142, 82, 0.42); }
+
+  .corner {
+    position: absolute;
+    font-size: 9px;
+    line-height: 1;
+    color: rgba(245, 210, 146, 0.72);
+    z-index: 3;
+    pointer-events: none;
+  }
+  .tone-rose .corner { color: rgba(255, 180, 202, 0.78); }
+  .tone-ivory-hero .corner,
+  .tone-ivory-banner .corner { color: rgba(180, 126, 62, 0.72); }
+  .c-tl { top: 12px; left: 13px; }
+  .c-tr { top: 12px; right: 13px; }
+  .c-bl { bottom: 12px; left: 13px; }
+  .c-br { bottom: 12px; right: 13px; }
+
+  /* Metallic foil specular sheen gliding across the plaque */
+  .sheen {
+    position: absolute;
+    top: -40%;
+    left: -70%;
+    width: 55%;
+    height: 180%;
+    z-index: 4;
+    pointer-events: none;
+    background: linear-gradient(105deg, transparent 20%, rgba(255, 248, 230, 0.28) 50%, transparent 80%);
+    transform: skewX(-18deg);
+    animation: sheenSweep 2.6s cubic-bezier(.22, 1, .36, 1) 0.45s infinite;
+  }
+  .tone-ivory-hero .sheen,
+  .tone-ivory-banner .sheen {
+    background: linear-gradient(105deg, transparent 20%, rgba(255, 255, 255, 0.65) 50%, transparent 80%);
+  }
+  @keyframes sheenSweep {
+    0%   { left: -75%; opacity: 0; }
+    15%  { opacity: 1; }
+    65%  { left: 135%; opacity: 1; }
+    100% { left: 135%; opacity: 0; }
+  }
+
+  /* Subtle floating golden dust motes (CSS-only, 0 CPU) */
+  .sparks { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+  .sp {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff8e4 0%, rgba(245, 210, 146, 0) 75%);
+    animation: drift 3.4s ease-in-out infinite;
+  }
+  .sp:nth-child(1) { left: 14%; top: 26%; animation-delay: 0s; }
+  .sp:nth-child(2) { left: 82%; top: 22%; animation-delay: 0.7s; width: 5px; height: 5px; }
+  .sp:nth-child(3) { left: 22%; top: 76%; animation-delay: 1.4s; }
+  .sp:nth-child(4) { left: 86%; top: 72%; animation-delay: 2.0s; }
+  @keyframes drift {
+    0%, 100% { transform: translateY(0) scale(0.75); opacity: 0.35; }
+    50%      { transform: translateY(-10px) scale(1.25); opacity: 0.95; }
+  }
+
+  /* Impact flash */
+  .impact {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    background: radial-gradient(circle at 50% 50%, rgba(255, 248, 232, 0.96) 0%, rgba(255, 216, 148, 0.42) 45%, transparent 76%);
+    mix-blend-mode: screen;
+    pointer-events: none;
+    animation: flash 0.65s ease-out forwards;
+  }
+  @keyframes flash { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+  /* ---- METALLIC FOIL & LETTERPRESS TYPOGRAPHY ---- */
+  .word {
+    position: relative;
+    z-index: 3;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-weight: 800;
+    font-size: clamp(32px, 19vh, 64px);
+    line-height: 1.08;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+
+  .tone-gold .word {
+    background: linear-gradient(168deg, #fff9ec 0%, #f5d292 38%, #c68c40 72%, #fce4b4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.65));
+  }
+
+  .tone-rose .word {
+    background: linear-gradient(168deg, #fff5f8 0%, #ffbacd 40%, #d46d8a 74%, #ffe3ec 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.68));
+  }
+
+  .tone-ivory-hero .word {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    color: var(--ink);
+    letter-spacing: 0.04em;
+  }
+  .hero-num {
+    font-family: 'Oooh Baby', cursive;
+    font-weight: 400;
+    font-size: clamp(72px, 44vh, 102px);
+    line-height: 0.78;
+    color: var(--accent);
+    text-shadow: 0 3px 14px rgba(180, 86, 51, 0.22);
+  }
+  .hero-label {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-weight: 800;
+    font-size: clamp(34px, 22vh, 52px);
+    color: var(--ink);
+  }
+
+  .tone-ivory-banner .word {
+    font-family: 'Playpen Sans', cursive;
+    font-weight: 600;
+    font-size: clamp(24px, 23vh, 38px);
+    letter-spacing: 0.01em;
+    color: var(--ink);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  @keyframes slam {
+    0%   { opacity: 0; transform: scale(1.85) rotate(calc(var(--rot, 0deg) * 2)); filter: brightness(2.0); }
+    65%  { opacity: 1; transform: scale(0.96) rotate(var(--rot, 0deg)); filter: brightness(1.1); }
+    100% { opacity: 1; transform: scale(1) rotate(var(--rot, 0deg)); filter: brightness(1); }
+  }
+  @keyframes hoverFloat {
+    0%, 100% { transform: translateY(0) scale(1) rotate(var(--rot, 0deg)); }
+    50%      { transform: translateY(-5px) scale(1.015) rotate(var(--rot, 0deg)); }
+  }
+
+  body.charge .plaque {
+    animation: tremble 0.12s linear infinite;
+    box-shadow: 0 0 68px rgba(255, 226, 165, 0.72), 0 0 0 2px #fff2d6;
+    filter: brightness(1.25);
+  }
+  @keyframes tremble {
+    0%   { transform: translate(-2px, 1px) scale(1.03) rotate(var(--rot, 0deg)); }
+    25%  { transform: translate(2px, -1px) scale(1.04) rotate(var(--rot, 0deg)); }
+    50%  { transform: translate(-1px, -2px) scale(1.03) rotate(var(--rot, 0deg)); }
+    75%  { transform: translate(2px, 2px) scale(1.04) rotate(var(--rot, 0deg)); }
+    100% { transform: translate(0, 0) scale(1.03) rotate(var(--rot, 0deg)); }
+  }
+
+  body.out .plaque {
+    animation: implode 0.55s cubic-bezier(.7, 0, .84, 0) forwards;
+  }
+  @keyframes implode {
+    0%   { opacity: 1; transform: scale(1.03) rotate(var(--rot, 0deg)); filter: brightness(1.3); }
+    45%  { opacity: 1; transform: scale(1.12) rotate(0deg); filter: brightness(2.6); }
+    100% { opacity: 0; transform: scale(0.05) rotate(0deg); filter: brightness(3.8); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <div class="ring"></div>
+  <div class="plaque" id="plaque">
+    <div class="glaze"></div>
+    <div class="inner-frame"></div>
+    <span class="corner c-tl">✦</span>
+    <span class="corner c-tr">✦</span>
+    <span class="corner c-bl">✦</span>
+    <span class="corner c-br">✦</span>
+    <div class="sparks"><span class="sp"></span><span class="sp"></span><span class="sp"></span><span class="sp"></span></div>
+    <div class="word" id="word"></div>
+    <div class="sheen"></div>
+    <div class="impact"></div>
+  </div>
+</div>
+<script src="js/host.js"></script>
+<script>
+  const id = Host.q('id', 'w');
+  const text = Host.q('text', '');
+  const tone = Host.q('tone', 'gold');
+  const bg = Host.q('bg', '');
+  const rot = parseFloat(Host.q('rot', '0')) || 0;
+
+  const wrap = document.getElementById('wrap');
+  wrap.classList.add('tone-' + tone);
+  wrap.style.setProperty('--rot', rot + 'deg');
+
+  if (bg) {
+    const img = new Image();
+    img.src = bg;
+    img.className = 'bg-photo';
+    document.getElementById('plaque').prepend(img);
+  }
+
+  const wordEl = document.getElementById('word');
+  if (tone === 'ivory-hero' && /^\d+\s+/.test(text)) {
+    const parts = text.split(/\s+/);
+    const numSpan = document.createElement('span');
+    numSpan.className = 'hero-num';
+    numSpan.textContent = parts[0];
+    const lblSpan = document.createElement('span');
+    lblSpan.className = 'hero-label';
+    lblSpan.textContent = parts.slice(1).join(' ');
+    wordEl.append(numSpan, lblSpan);
+  } else {
+    wordEl.textContent = text;
+    if (text.length >= 10 && tone !== 'ivory-banner') {
+      wordEl.style.fontSize = 'clamp(28px, 16vh, 44px)';
+    }
+  }
+
+  window.ACT = (name) => {
+    if (name === 'charge') {
+      document.body.classList.add('charge');
+    } else if (name === 'implode') {
+      document.body.classList.remove('charge');
+      document.body.classList.add('out');
+      setTimeout(() => Host.post({ cmd: 'close', id }), 580);
+    }
+  };
+</script>
+</body>
+</html>

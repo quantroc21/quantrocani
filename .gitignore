@@ -1,0 +1,14 @@
+# Runtime & local state
+.done
+show.log
+show.err
+.DS_Store
+
+# Unused stock assets, dev helpers & build artifacts
+.agents/
+skills-lock.json
+dist/
+web/assets/photos/
+web/assets/videos/
+tools/proto_host.js
+tools/fetch_fonts.py

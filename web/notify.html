@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<title>notify</title>
+<link rel="stylesheet" href="fonts/fonts.css" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: transparent; overflow: hidden; -webkit-user-select: none; user-select: none; }
+  .n {
+    position: absolute; left: 14px; right: 14px; top: 12px; bottom: 16px;
+    display: grid; grid-template-columns: 38px 1fr auto; gap: 12px; align-items: center;
+    padding: 12px 14px; border-radius: 18px;
+    background: rgba(24, 21, 18, 0.93);
+    box-shadow: 0 0 0 0.5px rgba(255, 240, 220, 0.22), 0 14px 34px -8px rgba(0, 0, 0, 0.55);
+    transform: translateX(115%); animation: in .8s cubic-bezier(.16, 1, .3, 1) forwards;
+    font-family: 'Be Vietnam Pro', -apple-system, sans-serif; color: #f2ece2;
+  }
+  @keyframes in { to { transform: none; } }
+  body.out .n { animation: out .55s cubic-bezier(.7, 0, .84, 0) forwards; }
+  @keyframes out { from { transform: none; opacity: 1 } to { transform: translateX(115%); opacity: 0 } }
+  .ic { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
+    background: radial-gradient(circle at 30% 25%, #fbe3b4, #c9924a 70%); color: #2a1a08;
+    font: 400 26px/1 'Oooh Baby', cursive; }
+  .t { font-weight: 600; font-size: 13px; letter-spacing: -0.005em; }
+  .b { font-weight: 400; font-size: 12.5px; color: rgba(242, 236, 226, .78); margin-top: 2px; line-height: 1.35; }
+  .tm { align-self: start; font-size: 11px; color: rgba(242, 236, 226, .45); margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="n">
+  <div class="ic">4</div>
+  <div><div class="t" id="t"></div><div class="b" id="b"></div></div>
+  <div class="tm">bây giờ</div>
+</div>
+<script src="js/host.js"></script>
+<script>
+  const id = Host.q('id', 'n');
+  document.getElementById('t').textContent = Host.q('title', '');
+  document.getElementById('b').textContent = Host.q('body', '');
+  window.ACT = (name) => {
+    if (name === 'out') {
+      document.body.classList.add('out');
+      setTimeout(() => Host.post({ cmd: 'close', id }), 580);
+    }
+  };
+</script>
+</body>
+</html>

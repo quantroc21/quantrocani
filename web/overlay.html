@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<title>overlay</title>
+<style>
+  html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+  canvas { position: fixed; inset: 0; display: block; }
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+<script src="js/host.js"></script>
+<script src="js/fireworks.js"></script>
+<script>
+  const fx = new Fireworks(document.getElementById('fx'), { dprCap: 1.5 });
+  window.FXCMD = (o) => fx.cmd(o);
+  fx.sound.resume();
+  Host.post({ cmd: 'ready', who: 'overlay' });
+</script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kỷ niệm 4 năm của Anh &amp; Khuê</title>
+  <link rel="stylesheet" href="fonts/fonts.css" />
+  <link rel="stylesheet" href="css/stage.css" />
+</head>
+<body>
+  <div class="backdrop"></div>
+  <canvas id="gl"></canvas>
+  <canvas id="atmo"></canvas>
+
+  <main id="stage">
+    <section class="letter-wrap">
+      <article class="letter-sheet">
+        <div class="letter-ruled" id="letter-ruled">
+          <div class="letter-top">
+            <span class="letter-date" id="letter-date"></span>
+          </div>
+          <div class="letter-greeting" id="letter-greeting"></div>
+          <div class="letter-body" id="letter-body"></div>
+          <div class="letter-sign" id="letter-sign" hidden>
+            <div class="letter-signoff" id="letter-signoff"></div>
+            <div class="letter-signature" id="letter-signature"></div>
+          </div>
+        </div>
+        <footer class="letter-foot">
+          <span id="letter-page-note">Trang 1 / 6</span>
+          <button class="paper-link" id="btn-full-letter">Xem nguyên bức thư</button>
+        </footer>
+      </article>
+    </section>
+
+    <aside class="memory-desk" id="memory-desk"></aside>
+  </main>
+
+  <section class="rooms-overlay" id="rooms-overlay">
+    <h2 class="rooms-title" id="rooms-title"></h2>
+    <div class="rooms-row" id="rooms-row"></div>
+  </section>
+
+  <section class="finale-overlay" id="finale-overlay">
+    <h1 class="finale-title" id="finale-title"></h1>
+    <p class="finale-sub" id="finale-sub"></p>
+    <div class="finale-actions">
+      <button class="btn-ghost" id="fin-read">Đọc lại bức thư tay</button>
+      <button class="btn-ghost" id="fin-fire">Bắn thêm pháo hoa</button>
+      <button class="btn-ghost" id="fin-replay">Xem lại từ đầu</button>
+      <button class="btn-ghost" id="fin-quit">Đóng</button>
+    </div>
+  </section>
+
+  <div id="dev-windows"></div>
+  <canvas id="fx-fallback"></canvas>
+
+  <div class="prelude-ui">
+    <button class="btn-ghost" id="btn-skip">Mở bức thư ngay</button>
+  </div>
+
+  <footer class="hud">
+    <div class="hud-progress" id="hud-progress">Trang 1 / 6</div>
+    <div class="hud-controls">
+      <button class="hud-btn" id="btn-prev">Trang trước</button>
+      <button class="hud-btn" id="btn-play">Tạm dừng</button>
+      <button class="hud-btn" id="btn-next">Trang tiếp</button>
+      <button class="hud-btn" id="btn-fire">Bắn pháo hoa</button>
+      <button class="hud-btn" id="btn-sound">Nhạc nền: Bật</button>
+      <button class="hud-btn" id="btn-quit">Đóng</button>
+    </div>
+  </footer>
+
+  <script src="vendor/three.min.js"></script>
+  <script src="vendor/gsap.min.js"></script>
+  <script src="vendor/CustomEase.min.js"></script>
+
+  <script src="js/data.js"></script>
+  <script src="js/host.js"></script>
+  <script src="js/fireworks.js"></script>
+  <script src="js/particles.js"></script>
+  <script src="js/atmosphere.js"></script>
+  <script src="js/music.js"></script>
+  <script src="js/stage.js"></script>
+</body>
+</html>
