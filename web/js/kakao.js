@@ -143,14 +143,24 @@
       shadow,
       bubble,
       trotGroup,
+      runTail,
+      runLegBR,
+      runLegFR,
+      runLegBL,
+      runLegFL,
       runHeadWrap,
       leashProp,
       sitGroup,
+      sitTail,
       sitHeadWrap,
       bellyGroup,
+      bellyTail,
       jumpGroup,
       pose: '',
       faceRight,
+      moving: pose === 'trot' || pose === 'leash',
+      walkAmp: pose === 'trot' || pose === 'leash' ? 1 : 0,
+      phase: rand(0, Math.PI * 2),
       blinkTimer: rand(1.4, 3.4),
       blinking: false,
       happyHold: 0,
@@ -228,10 +238,48 @@
       }
       const dt = Math.min(0.08, Math.max(0.001, (now - this.lastTs) / 1000));
       this.lastTs = now;
+      const t = now * 0.001;
 
       for (let i = 0; i < this.actors.length; i++) {
         const a = this.actors[i];
-        // Chớp mắt tự nhiên cho cả lúc chạy lẫn lúc ngồi!
+        const ph = a.phase;
+
+        // 1) Điều khiển trực tiếp 7 khớp xương bằng rAF 60/120Hz (không bao giờ bị kẹt CSS WebKit!)
+        if (a.pose === 'trot' || a.pose === 'leash') {
+          const targetAmp = a.moving ? 1 : 0;
+          a.walkAmp += (targetAmp - a.walkAmp) * (1 - Math.exp(-dt * 12));
+
+          const g = t * 11.2 + ph; // tần số sải chân mượt tự nhiên
+          const sA = Math.sin(g) * 25 * a.walkAmp;
+          const sB = -sA;
+          const bob = -Math.abs(Math.sin(g)) * 5.5 * a.walkAmp;
+          const tailDeg = 2 + Math.sin(t * 14 + ph) * (12 + 6 * a.walkAmp);
+          const headDeg = Math.sin(g + 0.6) * 3.5 * a.walkAmp + Math.sin(t * 3.2 + ph) * 1.8;
+          const leashDeg = Math.sin(g - 0.5) * 13 * a.walkAmp + Math.sin(t * 4.5 + ph) * 4.5;
+
+          a.trotGroup.style.transform = `translateY(${bob.toFixed(2)}px)`;
+          a.runLegBL.style.transform = `rotate(${sA.toFixed(2)}deg)`;
+          a.runLegFR.style.transform = `rotate(${(-sA * 0.96).toFixed(2)}deg)`;
+          a.runLegBR.style.transform = `rotate(${sB.toFixed(2)}deg)`;
+          a.runLegFL.style.transform = `rotate(${(-sB * 0.96).toFixed(2)}deg)`;
+          a.runTail.style.transform = `rotate(${tailDeg.toFixed(2)}deg)`;
+          a.runHeadWrap.style.transform = `rotate(${headDeg.toFixed(2)}deg)`;
+          if (a.pose === 'leash') {
+            a.leashProp.style.transform = `rotate(${leashDeg.toFixed(2)}deg)`;
+          }
+        } else if (a.pose === 'sit') {
+          const tailDeg = 2 + Math.sin(t * 10.5 + ph) * 18;
+          const headDeg = Math.sin(t * 1.9 + ph) * 9;
+          a.sitTail.style.transform = `rotate(${tailDeg.toFixed(2)}deg)`;
+          a.sitHeadWrap.style.transform = `rotate(${headDeg.toFixed(2)}deg)`;
+        } else if (a.pose === 'belly') {
+          const rockDeg = Math.sin(t * 3.6 + ph) * 4.5;
+          const tailDeg = Math.sin(t * 13 + ph) * 18;
+          a.bellyGroup.style.transform = `rotate(${rockDeg.toFixed(2)}deg)`;
+          a.bellyTail.style.transform = `rotate(${tailDeg.toFixed(2)}deg)`;
+        }
+
+        // 2) Chớp mắt tự nhiên cho cả lúc chạy lẫn lúc ngồi
         if (a.happyHold > 0) {
           a.happyHold -= dt;
           a.sitHeadWrap.classList.add('is-blinking');
@@ -327,6 +375,10 @@
           a1.wrap.style.left = '22%';
         });
         [240, 520, 800, 1080].forEach((ms, i) => this._after(ms, () => this._dropPaw(4 + i * 5, 72)));
+        // Tới nơi thì đứng tự nhiên trên 4 chân, đuôi vẫn vẫy & dây dắt đung đưa ở miệng!
+        this._after(1320, () => {
+          a1.moving = false;
+        });
       });
 
       // Bé #2: Thò đầu nghiêng từ mép phải màn hình (đầu nghiêng + chớp mắt + vẫy đuôi!)
@@ -450,6 +502,8 @@
         actor.bubble.classList.remove('is-visible');
         if (!keepRot) {
           actor.wrap.style.width = '156px';
+          actor.moving = true;
+          actor.walkAmp = 1;
           setActorPose(actor, 'trot', exitRight);
         }
         actor.wrap.style.transition = 'left 0.68s linear, top 0.68s ease, opacity 0.48s ease 0.16s';
@@ -505,6 +559,7 @@
 
     _setCompIdleSit(faceRight = this.compX < 50) {
       if (!this.companion) return;
+      this.companion.moving = false;
       this.companion.wrap.style.width = '98px';
       setActorPose(this.companion, 'sit', faceRight);
     }
@@ -580,6 +635,8 @@
       const durSec = Math.max(1.2, Math.min(3.2, dist * 0.038));
 
       c.wrap.style.width = '126px';
+      c.moving = true;
+      c.walkAmp = 1;
       setActorPose(c, walkPose, faceRight);
       c.wrap.style.transition = `left ${durSec.toFixed(2)}s linear`;
       c.wrap.style.left = targetX + '%';
@@ -593,8 +650,11 @@
       }
 
       this.compX = targetX;
-      this._after(durSec * 1000 + 60, () => {
-        if (this.companion === c && onArrive) onArrive();
+      this._after(durSec * 1000 + 40, () => {
+        if (this.companion === c) {
+          c.moving = false;
+          if (onArrive) onArrive();
+        }
       });
     }
 
@@ -630,7 +690,6 @@
         });
       } else if (act === 'leash_park') {
         this._walkCompTo(sameSide, 'leash', () => {
-          this._setCompIdleSit(this.compX < 50);
           this._say(
             pick([
               'Ngậm sẵn dây dắt rồi nè, đọc xong đi công viên nhaaa! 🌳',
@@ -639,6 +698,9 @@
             ]),
             4000
           );
+          this._after(3600, () => {
+            if (this.companion === c) this._setCompIdleSit(this.compX < 50);
+          });
           this._scheduleNextAntic(rand(5800, 7400));
         });
       } else if (act === 'belly_roll') {

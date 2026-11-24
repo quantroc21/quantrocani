@@ -684,33 +684,24 @@ body.stage-on .hud {
   display: none;
 }
 
-/* 1) 7-Bone 60/120-FPS Skeletal Run/Trot Rig + Swinging Red Park Leash */
+/* 1) 7-Bone 60/120-FPS Skeletal Run/Trot Rig (driven directly by rAF so WebKit never freezes on display toggle!) */
 .k-mode-trot {
   will-change: transform;
-  animation: kStrideBob 0.145s ease-in-out var(--phase, 0s) infinite alternate;
 }
-@keyframes kStrideBob {
-  from { transform: translateY(2px); }
-  to   { transform: translateY(-4.5px); }
-}
-
 .k-run-tail {
   z-index: 1;
   transform-origin: 20.0% 43.0%;
   will-change: transform;
-  animation: kRunTailWag 0.22s ease-in-out var(--phase, 0s) infinite alternate;
 }
 .k-run-leg-br {
   z-index: 1;
   transform-origin: 35.5% 61.5%;
   will-change: transform;
-  animation: kSwingPairB 0.29s cubic-bezier(.42, 0, .58, 1) var(--phase, 0s) infinite alternate;
 }
 .k-run-leg-fr {
   z-index: 2;
-  transform-origin: 65.5% 62.5%;
+  transform-origin: 61.8% 57.0%;
   will-change: transform;
-  animation: kSwingPairA 0.29s cubic-bezier(.42, 0, .58, 1) var(--phase, 0s) infinite alternate;
 }
 .k-run-torso {
   z-index: 3;
@@ -719,19 +710,16 @@ body.stage-on .hud {
   z-index: 4;
   transform-origin: 24.1% 57.0%;
   will-change: transform;
-  animation: kSwingPairA 0.29s cubic-bezier(.42, 0, .58, 1) var(--phase, 0s) infinite alternate;
 }
 .k-run-leg-fl {
   z-index: 4;
   transform-origin: 57.7% 58.0%;
   will-change: transform;
-  animation: kSwingPairB 0.29s cubic-bezier(.42, 0, .58, 1) var(--phase, 0s) infinite alternate;
 }
 .k-run-head-wrap {
   z-index: 5;
   transform-origin: 60.9% 37.5%;
   will-change: transform;
-  animation: kRunHeadNod 0.29s ease-in-out var(--phase, 0s) infinite alternate;
 }
 .k-run-head-wrap.is-blinking .k-head-open  { opacity: 0; }
 .k-run-head-wrap.is-blinking .k-head-blink { opacity: 1; }
@@ -745,28 +733,6 @@ body.stage-on .hud {
   z-index: 6;
   transform-origin: 45% 8%;
   will-change: transform;
-  animation: kLeashSwing 0.29s ease-in-out var(--phase, 0s) infinite alternate;
-}
-
-@keyframes kSwingPairA {
-  from { transform: rotate(-25deg); }
-  to   { transform: rotate(24deg); }
-}
-@keyframes kSwingPairB {
-  from { transform: rotate(24deg); }
-  to   { transform: rotate(-25deg); }
-}
-@keyframes kRunTailWag {
-  from { transform: rotate(-14deg); }
-  to   { transform: rotate(19deg); }
-}
-@keyframes kRunHeadNod {
-  from { transform: rotate(-3.2deg); }
-  to   { transform: rotate(4.2deg); }
-}
-@keyframes kLeashSwing {
-  from { transform: rotate(-12deg); }
-  to   { transform: rotate(14deg); }
 }
 
 /* 2) Multi-Part SIT Puppet (Body planted still! Tail wags + Head tilts + Eyes blink!) */
@@ -781,7 +747,6 @@ body.stage-on .hud {
   z-index: 1;
   transform-origin: 33% 84%;
   will-change: transform;
-  animation: kSitTailWag 0.30s ease-in-out infinite alternate;
 }
 .k-sit-body {
   z-index: 2;
@@ -790,43 +755,24 @@ body.stage-on .hud {
   z-index: 3;
   transform-origin: 67% 43%;
   will-change: transform;
-  animation: kHeadTilt 1.85s ease-in-out infinite alternate;
 }
 .k-head-open  { opacity: 1; }
 .k-head-blink { opacity: 0; }
 .k-sit-head-wrap.is-blinking .k-head-open  { opacity: 0; }
 .k-sit-head-wrap.is-blinking .k-head-blink { opacity: 1; }
 
-@keyframes kSitTailWag {
-  from { transform: rotate(-17deg); }
-  to   { transform: rotate(21deg); }
-}
-@keyframes kHeadTilt {
-  from { transform: rotate(-8.5deg); }
-  to   { transform: rotate(9.5deg); }
-}
-
 /* 3) Multi-Part BELLY Puppet (Tail wags rapidly behind gently rocking body!) */
 .k-mode-belly {
   transform-origin: 54% 62%;
-  animation: kBellyRock 0.85s ease-in-out infinite alternate;
+  will-change: transform;
 }
 .k-belly-tail {
   z-index: 1;
   transform-origin: 25% 83%;
   will-change: transform;
-  animation: kBellyTailWag 0.24s ease-in-out infinite alternate;
 }
 .k-belly-body {
   z-index: 2;
-}
-@keyframes kBellyRock {
-  from { transform: rotate(-4.5deg); }
-  to   { transform: rotate(4.5deg); }
-}
-@keyframes kBellyTailWag {
-  from { transform: rotate(-18deg); }
-  to   { transform: rotate(18deg); }
 }
 
 /* 4) Joyful Mid-Air Jump */
