@@ -625,7 +625,7 @@ body.stage-on .hud {
 }
 .hud-btn:hover { border-color: var(--gold); color: var(--gold); }
 
-/* ---- 3D KAKAO PACK (PRELUDE) & LIVING 3D COMPANION (STAGE) ---- */
+/* ---- ILLUSTRATED KAKAO STICKER PACK (PRELUDE) & LIVING COMPANION (STAGE) ---- */
 #kakao-layer {
   position: fixed;
   inset: 0;
@@ -634,37 +634,102 @@ body.stage-on .hud {
   overflow: hidden;
 }
 
-#kakao-gl {
+.k-actor {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.k-dom-overlay {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.k-hitbox {
-  position: absolute;
-  width: 112px;
-  height: 112px;
   transform: translate(-50%, -50%);
-  background: transparent;
-  border: 0;
-  border-radius: 50%;
+  will-change: left, top, transform, opacity;
+  pointer-events: none;
+}
+
+.k-actor.k-companion {
+  top: auto;
+  transform: translateX(-50%);
   pointer-events: auto;
   cursor: pointer;
 }
 
-/* Soft warm handwritten speech cloud projected above 3D Kakao's head */
+.k-ground-shadow {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 2px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(12, 7, 3, 0.42) 0%, rgba(12, 7, 3, 0) 74%);
+  pointer-events: none;
+}
+
+.k-flip {
+  width: 100%;
+  transform-origin: 50% 60%;
+}
+.k-flip.is-mirrored {
+  transform: scaleX(-1);
+}
+
+.k-anim {
+  width: 100%;
+  transform-origin: 50% 88%;
+  will-change: transform;
+}
+
+.k-sprite-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 10px 18px rgba(12, 7, 4, 0.42));
+  transition: filter 0.2s ease;
+}
+.k-actor.k-companion:hover .k-sprite-img {
+  filter: drop-shadow(0 8px 20px rgba(246, 208, 138, 0.55));
+}
+
+/* Disney Squash-and-Stretch Cartoon Pose Animations */
+.k-pose-leash {
+  animation: kTrotBounce 0.32s cubic-bezier(.32, 0, .68, 1) infinite alternate;
+}
+.k-pose-jump {
+  animation: kGallopBound 0.38s cubic-bezier(.25, .46, .45, .94) infinite alternate;
+}
+.k-pose-belly {
+  transform-origin: 50% 55%;
+  animation: kBellyWiggle 0.65s ease-in-out infinite alternate;
+}
+.k-pose-sit {
+  animation: kSitSway 1.5s ease-in-out infinite alternate;
+}
+.k-anim.k-excited-burst {
+  animation: kExcitedHop 0.26s cubic-bezier(.2, .8, .4, 1) infinite alternate;
+}
+
+@keyframes kTrotBounce {
+  0%   { transform: translateY(2px) scale(1.05, 0.95) rotate(-2.5deg); }
+  100% { transform: translateY(-9px) scale(0.96, 1.05) rotate(3deg); }
+}
+@keyframes kGallopBound {
+  0%   { transform: translateY(3px) scale(1.06, 0.93) rotate(-4deg); }
+  100% { transform: translateY(-16px) scale(0.95, 1.07) rotate(5deg); }
+}
+@keyframes kBellyWiggle {
+  0%   { transform: rotate(-6deg) scale(1.02, 0.98); }
+  100% { transform: rotate(6deg) scale(0.98, 1.02); }
+}
+@keyframes kSitSway {
+  0%   { transform: rotate(-3.5deg) scale(1.01, 0.99); }
+  100% { transform: rotate(3.5deg) scale(0.99, 1.02); }
+}
+@keyframes kExcitedHop {
+  0%   { transform: translateY(0) scale(1.08, 0.92); }
+  100% { transform: translateY(-22px) scale(0.94, 1.08); }
+}
+
+/* Soft warm handwritten speech cloud */
 .k-bubble {
   position: absolute;
-  transform: translate(-50%, -100%) scale(0.86);
-  min-width: 190px;
+  left: 50%;
+  bottom: calc(100% + 4px);
+  transform: translateX(-50%) scale(0.86);
+  min-width: 195px;
   max-width: 285px;
   padding: 9px 14px;
   border-radius: 18px;
@@ -679,13 +744,12 @@ body.stage-on .hud {
   text-align: center;
   opacity: 0;
   pointer-events: none;
-  will-change: left, top, transform, opacity;
   transition: opacity 0.26s ease, transform 0.3s cubic-bezier(.18, 1.3, .32, 1);
   z-index: 5;
 }
 .k-bubble.is-visible {
   opacity: 1;
-  transform: translate(-50%, -100%) scale(1);
+  transform: translateX(-50%) scale(1);
 }
 .k-bubble::after {
   content: '';
@@ -709,18 +773,29 @@ body.stage-on .hud {
   max-width: 245px;
   padding: 8px 13px;
 }
+.k-actor.k-edge-right .k-bubble {
+  left: auto;
+  right: 84%;
+  bottom: 30%;
+  transform: scale(0.86);
+}
+.k-actor.k-edge-right .k-bubble.is-visible {
+  transform: scale(1);
+}
+.k-actor.k-edge-right .k-bubble::after { display: none; }
 
-/* Real squinting Kakao circular photo sticker next to belly-up 3D puppy */
+/* Real squinting Kakao circular photo sticker next to belly-up puppy */
 .k-photo-badge {
   position: absolute;
+  right: -14px;
+  bottom: 8px;
   width: 58px;
   height: 58px;
   border-radius: 50%;
   padding: 3px;
   background: #fffdf8;
   box-shadow: 0 8px 18px rgba(15, 9, 4, 0.42);
-  transform: translate(-50%, -50%) rotate(10deg);
-  transition: opacity 0.3s ease;
+  transform: rotate(10deg);
 }
 .k-photo-badge img {
   width: 100%;
@@ -728,6 +803,18 @@ body.stage-on .hud {
   object-fit: cover;
   border-radius: 50%;
   display: block;
+}
+
+.k-butterfly {
+  position: absolute;
+  left: -24px;
+  top: 8px;
+  font-size: 23px;
+  animation: kFlutter 0.34s ease-in-out infinite alternate;
+}
+@keyframes kFlutter {
+  from { transform: translate(0, 0) rotate(-12deg) scale(0.95); }
+  to   { transform: translate(-6px, -10px) rotate(8deg) scale(1.1); }
 }
 
 .k-paw-print {
