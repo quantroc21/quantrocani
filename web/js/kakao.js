@@ -1,252 +1,766 @@
 /* =====================================================================
-   KAKAO PACK & STAGE COMPANION
-   - Prelude: Đàn Kakao nhiều tư thế ùa ra đòi đi công viên, lăn bụng, rượt bướm (không dùng card nhiệm vụ)
-   - Stage: Bé Kakao chạy lon ton, tha dây dắt đòi đi công viên, lăn bụng, nghiêng đầu đọc thư & cho nựng khi click
+   3D KAKAO PACK & STAGE COMPANION (THREE.JS)
+   - Mô hình 3D Kakao điêu khắc mềm mại đúng màu lông thật (đầu/tai vàng caramel,
+     vệt trắng giữa trán, mõm trắng, đốm lưng caramel, bụng hồng, đệm chân hồng,
+     vòng cổ chuông vàng & dây dắt đỏ đi công viên)
+   - Prelude: Đàn 5 bé Kakao 3D chạy nhảy, thò đầu, lăn ngửa bụng 180°, rượt bướm 3D
+   - Stage: Bé Kakao 3D chạy lon ton hai bên lề, tha dây đòi đi công viên, lăn bụng,
+     nghiêng đầu hóng chuyện & nhảy xoay 360° bắn tim khi được click nựng
    ===================================================================== */
 (function () {
+  if (!window.THREE) return;
+  const THREE = window.THREE;
   const rand = (a, b) => a + Math.random() * (b - a);
   const pick = (arr) => arr[(Math.random() * arr.length) | 0];
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
-  /* ---- 4 tư thế SVG vẽ riêng theo đúng màu lông thật của bé Kakao ---- */
-  function svgTrot(withLeash = false) {
-    return `
-      <svg class="k-svg k-pose-trot" viewBox="0 0 180 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g class="k-bob">
-          <!-- Đuôi ngoáy -->
-          <g class="k-tail" style="transform-origin: 42px 68px">
-            <path d="M44 70 C22 58, 16 40, 26 34 C34 29, 44 46, 48 64 Z" fill="#FFFBF4" stroke="#4F321C" stroke-width="2.6" stroke-linejoin="round"/>
-            <path d="M38 61 C28 52, 25 43, 29 38" stroke="#D7934C" stroke-width="4.5" stroke-linecap="round"/>
-          </g>
-          <!-- Chân sau (cặp B) -->
-          <g class="k-leg-b" style="transform-origin: 54px 92px">
-            <rect x="47" y="88" width="13" height="28" rx="6.5" fill="#EDE4D5" stroke="#4F321C" stroke-width="2.4"/>
-          </g>
-          <!-- Chân trước (cặp A) -->
-          <g class="k-leg-a" style="transform-origin: 112px 92px">
-            <rect x="105" y="88" width="13" height="28" rx="6.5" fill="#EDE4D5" stroke="#4F321C" stroke-width="2.4"/>
-          </g>
-          <!-- Thân trắng mũm mĩm + đốm lưng vàng caramel -->
-          <ellipse cx="82" cy="78" rx="44" ry="26" fill="#FFFBF4" stroke="#4F321C" stroke-width="2.6"/>
-          <path d="M60 54 C78 50, 96 55, 96 70 C84 74, 66 71, 60 54 Z" fill="#D7934C"/>
-          <!-- Chân sau ngoài (cặp A) -->
-          <g class="k-leg-a" style="transform-origin: 62px 94px">
-            <rect x="55" y="90" width="14" height="29" rx="7" fill="#FFFBF4" stroke="#4F321C" stroke-width="2.5"/>
-          </g>
-          <!-- Chân trước ngoài (cặp B) -->
-          <g class="k-leg-b" style="transform-origin: 104px 94px">
-            <rect x="97" y="90" width="14" height="29" rx="7" fill="#FFFBF4" stroke="#4F321C" stroke-width="2.5"/>
-          </g>
-          <!-- Đầu & Tai vàng caramel + Mõm trắng -->
-          <g transform="translate(0, 0)">
-            <path d="M108 42 L100 12 C99 8, 104 6, 108 10 L122 34 Z" fill="#D7934C" stroke="#4F321C" stroke-width="2.5" stroke-linejoin="round"/>
-            <path d="M124 38 L134 10 C136 6, 141 8, 140 13 L136 42 Z" fill="#D7934C" stroke="#4F321C" stroke-width="2.5" stroke-linejoin="round"/>
-            <path d="M126 35 L133 15 L134 37 Z" fill="#F2C2AC"/>
-            <circle cx="124" cy="56" r="24" fill="#D7934C" stroke="#4F321C" stroke-width="2.6"/>
-            <!-- Vệt trắng trán + mõm trắng vươn ra -->
-            <path d="M126 36 C128 45, 134 48, 154 52 C161 54, 162 64, 155 69 C147 75, 132 76, 122 72 C122 60, 124 46, 126 36 Z" fill="#FFFBF4"/>
-            <path d="M142 70 C152 70, 159 66, 160 58 C159 52, 151 50, 142 50" stroke="#4F321C" stroke-width="2.5" stroke-linecap="round"/>
-            <!-- Má hồng + Mắt long lanh + Mũi đen -->
-            <ellipse cx="132" cy="63" rx="5.5" ry="3.2" fill="#F7A9A8" opacity="0.72"/>
-            <circle cx="134" cy="51" r="4.6" fill="#2A1B12"/>
-            <circle cx="132.6" cy="49.4" r="1.6" fill="#FFFFFF"/>
-            <ellipse cx="158" cy="55" rx="4.8" ry="3.6" fill="#2A1B12"/>
-            <!-- Lưỡi hồng thè vui -->
-            <path d="M144 67 Q149 77 153 68" fill="#F28593" stroke="#4F321C" stroke-width="2"/>
-            ${withLeash ? `
-              <!-- Vòng cổ & Dây dắt đi công viên ngậm trong miệng -->
-              <path d="M106 60 Q116 74 126 74" stroke="#D84B3A" stroke-width="4.5" stroke-linecap="round"/>
-              <circle cx="122" cy="75" r="3.5" fill="#F4C562" stroke="#4F321C" stroke-width="1.5"/>
-              <path d="M147 66 C154 88, 140 108, 162 104 C174 102, 174 86, 163 85 C154 84, 151 96, 158 103" stroke="#D84B3A" stroke-width="4" stroke-linecap="round" fill="none"/>
-            ` : ''}
-          </g>
-        </g>
-      </svg>`;
+  /* ---------------- Shared Textures & Materials (built once, 0 leak) ---------------- */
+  let SHARED = null;
+
+  function makeHeadTexture() {
+    const c = document.createElement('canvas');
+    c.width = c.height = 512;
+    const g = c.getContext('2d');
+
+    // Base warm golden-caramel coat
+    const baseGrad = g.createLinearGradient(0, 0, 0, 512);
+    baseGrad.addColorStop(0, '#dc964b');
+    baseGrad.addColorStop(0.55, '#d38a3e');
+    baseGrad.addColorStop(1, '#fffaf1');
+    g.fillStyle = baseGrad;
+    g.fillRect(0, 0, 512, 512);
+
+    // Subtle soft fur grain strokes
+    g.globalAlpha = 0.08;
+    for (let i = 0; i < 420; i++) {
+      g.fillStyle = i % 2 === 0 ? '#ffdfad' : '#a96220';
+      g.fillRect(rand(0, 512), rand(0, 320), rand(2, 5), rand(8, 18));
+    }
+    g.globalAlpha = 1;
+
+    // Creamy-white lower cheeks & chin (centered at u=0.5 -> x=256)
+    const cheekGrad = g.createRadialGradient(256, 390, 30, 256, 370, 210);
+    cheekGrad.addColorStop(0, '#fffdf9');
+    cheekGrad.addColorStop(0.62, '#fffaf1');
+    cheekGrad.addColorStop(1, 'rgba(255, 250, 241, 0)');
+    g.fillStyle = cheekGrad;
+    g.fillRect(0, 170, 512, 342);
+
+    // Kakao's signature white forehead blaze tapering between the eyes
+    const blazeGrad = g.createLinearGradient(256, 125, 256, 300);
+    blazeGrad.addColorStop(0, 'rgba(255, 252, 246, 0.15)');
+    blazeGrad.addColorStop(0.28, 'rgba(255, 252, 246, 0.92)');
+    blazeGrad.addColorStop(1, '#fffdf9');
+    g.fillStyle = blazeGrad;
+    g.beginPath();
+    g.moveTo(256, 122);
+    g.bezierCurveTo(274, 165, 286, 235, 305, 295);
+    g.lineTo(207, 295);
+    g.bezierCurveTo(226, 235, 238, 165, 256, 122);
+    g.closePath();
+    g.fill();
+
+    // Soft rosy cheek blushes
+    [186, 326].forEach((bx) => {
+      const bl = g.createRadialGradient(bx, 302, 2, bx, 302, 36);
+      bl.addColorStop(0, 'rgba(247, 148, 146, 0.58)');
+      bl.addColorStop(1, 'rgba(247, 148, 146, 0)');
+      g.fillStyle = bl;
+      g.beginPath();
+      g.arc(bx, 302, 36, 0, Math.PI * 2);
+      g.fill();
+    });
+
+    const tex = new THREE.CanvasTexture(c);
+    if ('colorSpace' in tex && THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+    else if ('encoding' in tex && THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
+    return tex;
   }
 
-  function svgBelly() {
-    return `
-      <svg class="k-svg k-pose-belly" viewBox="0 0 180 135" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g class="k-rock" style="transform-origin: 90px 92px">
-          <!-- Đuôi ngoáy dưới sàn -->
-          <g class="k-tail" style="transform-origin: 36px 94px">
-            <path d="M38 94 C18 90, 12 78, 20 72 C28 67, 38 80, 42 90 Z" fill="#FFFBF4" stroke="#4F321C" stroke-width="2.5"/>
-          </g>
-          <!-- Đầu nằm ngửa + 2 tai xoè -->
-          <path d="M126 88 L148 108 C153 112, 148 118, 142 115 L118 100 Z" fill="#D7934C" stroke="#4F321C" stroke-width="2.5"/>
-          <path d="M132 72 L158 64 C163 63, 165 69, 160 73 L136 86 Z" fill="#D7934C" stroke="#4F321C" stroke-width="2.5"/>
-          <ellipse cx="128" cy="88" rx="23" ry="21" fill="#D7934C" stroke="#4F321C" stroke-width="2.6"/>
-          <ellipse cx="134" cy="84" rx="16" ry="14" fill="#FFFBF4"/>
-          <!-- Mắt cười tít hệt ảnh thật kakao_sleep.jpg -->
-          <path d="M124 84 Q128 79 132 84" stroke="#2A1B12" stroke-width="2.6" stroke-linecap="round"/>
-          <path d="M136 92 Q141 87 144 93" stroke="#2A1B12" stroke-width="2.6" stroke-linecap="round"/>
-          <ellipse cx="145" cy="77" rx="4.5" ry="3.4" fill="#2A1B12"/>
-          <ellipse cx="126" cy="92" rx="4.8" ry="3" fill="#F7A9A8" opacity="0.7"/>
-          <!-- Bụng trắng tròn ủm hướng lên trời + bụng hồng -->
-          <ellipse cx="82" cy="88" rx="44" ry="26" fill="#FFFBF4" stroke="#4F321C" stroke-width="2.6"/>
-          <ellipse cx="80" cy="78" rx="24" ry="11" fill="#FCE0DF" opacity="0.8"/>
-          <!-- 4 chân trắng chổng lên trời đạp phành phạch -->
-          <g class="k-leg-a" style="transform-origin: 56px 68px">
-            <rect x="48" y="44" width="13" height="26" rx="6.5" transform="rotate(-14 54 57)" fill="#FFFBF4" stroke="#4F321C" stroke-width="2.4"/>
-          </g>
-          <g class="k-leg-b" style="transform-origin: 72px 66px">
-            <rect x="65" y="42" width="13" height="25" rx="6.5" transform="rotate(10 71 54)" fill="#FFFBF4" stroke="#4F321C" stroke-width="2.4"/>
-          </g>
-          <g class="k-leg-b" style="transform-origin: 96px 66px">
-            <rect x="90" y="42" width="13" height="25" rx="6.5" transform="rotate(-8 96 54)" fill="#FFFBF4" stroke="#4F321C" stroke-width="2.4"/>
-          </g>
-          <g class="k-leg-a" style="transform-origin: 110px 70px">
-            <rect x="104" y="46" width="13" height="25" rx="6.5" transform="rotate(16 110 58)" fill="#FFFBF4" stroke="#4F321C" stroke-width="2.4"/>
-          </g>
-        </g>
-      </svg>`;
+  function makeBodyTexture() {
+    const c = document.createElement('canvas');
+    c.width = c.height = 512;
+    const g = c.getContext('2d');
+
+    // Warm creamy-white body fur
+    g.fillStyle = '#fffaf0';
+    g.fillRect(0, 0, 512, 512);
+
+    // Soft warm shading + rosy puppy belly at bottom (y=360..512)
+    const belly = g.createRadialGradient(256, 455, 18, 256, 450, 145);
+    belly.addColorStop(0, '#fbd8d6');
+    belly.addColorStop(0.65, '#fce8e4');
+    belly.addColorStop(1, 'rgba(255, 250, 240, 0)');
+    g.fillStyle = belly;
+    g.fillRect(0, 300, 512, 212);
+
+    // Kakao's signature golden-caramel back saddle patch
+    const patch = g.createRadialGradient(295, 130, 22, 295, 130, 118);
+    patch.addColorStop(0, '#d68e42');
+    patch.addColorStop(0.68, '#dc984f');
+    patch.addColorStop(1, 'rgba(220, 152, 79, 0)');
+    g.fillStyle = patch;
+    g.beginPath();
+    g.arc(295, 130, 118, 0, Math.PI * 2);
+    g.fill();
+
+    const tex = new THREE.CanvasTexture(c);
+    if ('colorSpace' in tex && THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+    else if ('encoding' in tex && THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
+    return tex;
   }
 
-  function svgPlayBow() {
-    return `
-      <svg class="k-svg k-pose-bow" viewBox="0 0 180 145" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g class="k-hop" style="transform-origin: 90px 115px">
-          <!-- Đuôi chổng cao ngoáy tít -->
-          <g class="k-tail" style="transform-origin: 42px 48px">
-            <path d="M44 52 C26 34, 28 14, 40 12 C49 11, 52 32, 50 48 Z" fill="#FFFBF4" stroke="#4F321C" stroke-width="2.6"/>
-            <path d="M41 40 C35 28, 36 20, 41 17" stroke="#D7934C" stroke-width="4.5" stroke-linecap="round"/>
-          </g>
-          <!-- Chân sau đứng cao -->
-          <rect x="44" y="68" width="15" height="46" rx="7.5" transform="rotate(-8 51 91)" fill="#FFFBF4" stroke="#4F321C" stroke-width="2.5"/>
-          <!-- Thân dốc xuống tư thế rủ đi chơi công viên -->
-          <path d="M42 64 C42 44, 72 44, 96 64 C114 78, 122 92, 108 104 C92 114, 66 102, 48 82 Z" fill="#FFFBF4" stroke="#4F321C" stroke-width="2.6"/>
-          <path d="M58 49 C74 48, 88 55, 90 68 C76 70, 62 63, 58 49 Z" fill="#D7934C"/>
-          <!-- Hai chân trước duỗi dài phía trước -->
-          <rect x="102" y="98" width="42" height="13" rx="6.5" transform="rotate(8 123 104)" fill="#FFFBF4" stroke="#4F321C" stroke-width="2.5"/>
-          <rect x="108" y="105" width="42" height="13" rx="6.5" fill="#FFFBF4" stroke="#4F321C" stroke-width="2.5"/>
-          <!-- Đầu ngẩng háo hức -->
-          <path d="M104 64 L94 30 C93 25, 99 23, 103 27 L118 52 Z" fill="#D7934C" stroke="#4F321C" stroke-width="2.5"/>
-          <path d="M126 60 L138 28 C140 23, 146 26, 144 31 L138 62 Z" fill="#D7934C" stroke="#4F321C" stroke-width="2.5"/>
-          <path d="M128 56 L137 33 L136 58 Z" fill="#F2C2AC"/>
-          <circle cx="122" cy="76" r="24" fill="#D7934C" stroke="#4F321C" stroke-width="2.6"/>
-          <path d="M122 54 C120 66, 114 74, 110 86 C112 96, 128 101, 144 95 C156 90, 157 78, 148 73 C134 69, 126 64, 122 54 Z" fill="#FFFBF4"/>
-          <circle cx="131" cy="72" r="5" fill="#2A1B12"/>
-          <circle cx="129.5" cy="70.2" r="1.8" fill="#FFFFFF"/>
-          <ellipse cx="126" cy="84" rx="5.5" ry="3.2" fill="#F7A9A8" opacity="0.72"/>
-          <ellipse cx="152" cy="77" rx="4.8" ry="3.6" fill="#2A1B12"/>
-          <path d="M136 89 Q142 100 147 89" fill="#F28593" stroke="#4F321C" stroke-width="2"/>
-        </g>
-      </svg>`;
+  function makeShadowTexture() {
+    const c = document.createElement('canvas');
+    c.width = c.height = 128;
+    const g = c.getContext('2d');
+    const grd = g.createRadialGradient(64, 64, 6, 64, 64, 60);
+    grd.addColorStop(0, 'rgba(18, 10, 5, 0.42)');
+    grd.addColorStop(0.55, 'rgba(18, 10, 5, 0.18)');
+    grd.addColorStop(1, 'rgba(18, 10, 5, 0)');
+    g.fillStyle = grd;
+    g.fillRect(0, 0, 128, 128);
+    return new THREE.CanvasTexture(c);
   }
 
-  function svgSit() {
-    return `
-      <svg class="k-svg k-pose-sit" viewBox="0 0 160 155" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Đuôi ngoáy sau lưng -->
-        <g class="k-tail" style="transform-origin: 112px 124px">
-          <path d="M110 126 C132 118, 142 102, 132 94 C124 88, 114 104, 108 120 Z" fill="#FFFBF4" stroke="#4F321C" stroke-width="2.5"/>
-          <path d="M115 120 C126 113, 131 104, 127 99" stroke="#D7934C" stroke-width="4.2" stroke-linecap="round"/>
-        </g>
-        <!-- Thân ngồi ngoan -->
-        <ellipse cx="80" cy="116" rx="34" ry="28" fill="#FFFBF4" stroke="#4F321C" stroke-width="2.6"/>
-        <path d="M100 96 C113 102, 115 118, 106 128 C98 122, 95 108, 100 96 Z" fill="#D7934C"/>
-        <rect x="58" y="114" width="14" height="30" rx="7" fill="#FFFBF4" stroke="#4F321C" stroke-width="2.5"/>
-        <rect x="88" y="114" width="14" height="30" rx="7" fill="#FFFBF4" stroke="#4F321C" stroke-width="2.5"/>
-        <!-- Đầu nghiêng qua lại dễ thương -->
-        <g class="k-tilt" style="transform-origin: 80px 84px">
-          <path d="M52 56 L36 18 C34 13, 40 10, 45 14 L70 42 Z" fill="#D7934C" stroke="#4F321C" stroke-width="2.5" stroke-linejoin="round"/>
-          <path d="M53 50 L42 22 L64 42 Z" fill="#F2C2AC"/>
-          <path d="M108 56 L124 18 C126 13, 120 10, 115 14 L90 42 Z" fill="#D7934C" stroke="#4F321C" stroke-width="2.5" stroke-linejoin="round"/>
-          <path d="M107 50 L118 22 L96 42 Z" fill="#F2C2AC"/>
-          <path d="M44 66 C44 40, 60 32, 80 32 C100 32, 116 40, 116 66 C116 88, 102 98, 80 98 C58 98, 44 88, 44 66 Z" fill="#D7934C" stroke="#4F321C" stroke-width="2.6"/>
-          <!-- Vệt trắng giữa trán + mõm trắng -->
-          <path d="M80 38 C77 50, 75 58, 70 67 C57 72, 50 78, 54 88 C58 96, 68 99, 80 99 C92 99, 102 96, 106 88 C110 78, 103 72, 90 67 C85 58, 83 50, 80 38 Z" fill="#FFFBF4"/>
-          <ellipse cx="57" cy="78" rx="6" ry="3.5" fill="#F7A9A8" opacity="0.68"/>
-          <ellipse cx="103" cy="78" rx="6" ry="3.5" fill="#F7A9A8" opacity="0.68"/>
-          <circle cx="64" cy="66" r="5" fill="#2A1B12"/>
-          <circle cx="62.4" cy="64.2" r="1.8" fill="#FFFFFF"/>
-          <circle cx="96" cy="66" r="5" fill="#2A1B12"/>
-          <circle cx="94.4" cy="64.2" r="1.8" fill="#FFFFFF"/>
-          <path d="M75 86 L85 86 L85 94 C85 97, 75 97, 75 94 Z" fill="#F28593" stroke="#4F321C" stroke-width="1.9"/>
-          <path d="M71 84 Q75.5 89 80 84 Q84.5 89 89 84" stroke="#4F321C" stroke-width="2.2" stroke-linecap="round" fill="none"/>
-          <ellipse cx="80" cy="77" rx="6" ry="4.4" fill="#2A1B12"/>
-        </g>
-      </svg>`;
+  function getShared() {
+    if (SHARED) return SHARED;
+    const headTex = makeHeadTexture();
+    const bodyTex = makeBodyTexture();
+    const shadowTex = makeShadowTexture();
+
+    SHARED = {
+      matHead: new THREE.MeshStandardMaterial({ map: headTex, roughness: 0.78, metalness: 0.02 }),
+      matBody: new THREE.MeshStandardMaterial({ map: bodyTex, roughness: 0.80, metalness: 0.02 }),
+      matWhite: new THREE.MeshStandardMaterial({ color: 0xfffaf0, roughness: 0.78, metalness: 0.02 }),
+      matTan: new THREE.MeshStandardMaterial({ color: 0xd79045, roughness: 0.76, metalness: 0.02 }),
+      matInnerEar: new THREE.MeshStandardMaterial({ color: 0xf3bfb0, roughness: 0.82, metalness: 0.0 }),
+      matPink: new THREE.MeshStandardMaterial({ color: 0xf48a96, roughness: 0.55, metalness: 0.02 }),
+      matToeBean: new THREE.MeshStandardMaterial({ color: 0xf2a3ad, roughness: 0.65, metalness: 0.0 }),
+      matEye: new THREE.MeshStandardMaterial({ color: 0x1e130d, roughness: 0.08, metalness: 0.08 }),
+      matNose: new THREE.MeshStandardMaterial({ color: 0x221510, roughness: 0.16, metalness: 0.05 }),
+      matGlint: new THREE.MeshBasicMaterial({ color: 0xffffff }),
+      matCollar: new THREE.MeshStandardMaterial({ color: 0xd94836, roughness: 0.48, metalness: 0.08 }),
+      matBell: new THREE.MeshStandardMaterial({ color: 0xf7ce68, roughness: 0.24, metalness: 0.68 }),
+      matWing: new THREE.MeshBasicMaterial({ color: 0xffdf85, side: THREE.DoubleSide, transparent: true, opacity: 0.92 }),
+      matShadow: new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false }),
+
+      geoSphere: new THREE.SphereGeometry(1, 32, 26),
+      geoSmallSphere: new THREE.SphereGeometry(1, 18, 16),
+      geoLeg: new THREE.CapsuleGeometry(0.165, 0.34, 8, 14),
+      // Smooth sculpted puppy ear profile via LatheGeometry (sinks cleanly into skull, soft rounded tip!)
+      geoEarOuter: new THREE.LatheGeometry(
+        [
+          new THREE.Vector2(0.001, -0.12),
+          new THREE.Vector2(0.24, -0.06),
+          new THREE.Vector2(0.27, 0.08),
+          new THREE.Vector2(0.22, 0.28),
+          new THREE.Vector2(0.13, 0.48),
+          new THREE.Vector2(0.055, 0.60),
+          new THREE.Vector2(0.001, 0.64),
+        ],
+        20
+      ),
+      geoEarInner: new THREE.LatheGeometry(
+        [
+          new THREE.Vector2(0.001, 0.02),
+          new THREE.Vector2(0.14, 0.08),
+          new THREE.Vector2(0.15, 0.22),
+          new THREE.Vector2(0.09, 0.40),
+          new THREE.Vector2(0.03, 0.50),
+          new THREE.Vector2(0.001, 0.53),
+        ],
+        16
+      ),
+      geoCollar: new THREE.TorusGeometry(0.46, 0.062, 12, 28),
+      geoSquint: new THREE.TorusGeometry(0.105, 0.026, 8, 18, Math.PI * 0.88),
+      geoSmile: new THREE.TorusGeometry(0.085, 0.018, 8, 16, Math.PI * 0.92),
+      geoShadow: new THREE.PlaneGeometry(2.3, 1.65),
+      geoTail: new THREE.TubeGeometry(
+        new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0, 0, 0),
+          new THREE.Vector3(0, 0.16, -0.22),
+          new THREE.Vector3(0, 0.42, -0.30),
+          new THREE.Vector3(0, 0.60, -0.16),
+        ]),
+        16,
+        0.105,
+        12,
+        false
+      ),
+      geoLeash: new THREE.TubeGeometry(
+        new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0, 0, 0),
+          new THREE.Vector3(0.22, -0.22, 0.18),
+          new THREE.Vector3(0.48, -0.44, 0.08),
+          new THREE.Vector3(0.68, -0.28, -0.05),
+          new THREE.Vector3(0.55, -0.14, 0.06),
+          new THREE.Vector3(0.46, -0.36, 0.08),
+        ]),
+        24,
+        0.032,
+        8,
+        false
+      ),
+    };
+    return SHARED;
   }
 
-  function renderPose(pose) {
-    if (pose === 'leash') return svgTrot(true);
-    if (pose === 'trot') return svgTrot(false);
-    if (pose === 'belly') return svgBelly();
-    if (pose === 'playbow') return svgPlayBow();
-    return svgSit();
+  /* ---------------- Build 1 Articulated 3D Kakao Rig ---------------- */
+  function createKakaoRig() {
+    const S = getShared();
+    const root = new THREE.Group();
+
+    // Soft ground contact shadow (stays on ground)
+    const shadow = new THREE.Mesh(S.geoShadow, S.matShadow);
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.y = -0.66;
+    root.add(shadow);
+
+    // Main articulated pivot (handles bounce, barrel-roll, play-bow pitch)
+    const rig = new THREE.Group();
+    root.add(rig);
+
+    const spine = new THREE.Group();
+    rig.add(spine);
+
+    // 1. Chubby Sculpted Torso + Fluffy Chest Puff
+    const torso = new THREE.Mesh(S.geoSphere, S.matBody);
+    torso.rotation.y = -Math.PI / 2; // aligns u=0.5 to +Z front & bottom to belly
+    torso.scale.set(0.62, 0.56, 0.88);
+    spine.add(torso);
+
+    const chest = new THREE.Mesh(S.geoSphere, S.matWhite);
+    chest.position.set(0, -0.04, 0.52);
+    chest.scale.set(0.50, 0.47, 0.46);
+    spine.add(chest);
+
+    // 2. Red Collar + Shiny Gold Bell
+    const collar = new THREE.Mesh(S.geoCollar, S.matCollar);
+    collar.position.set(0, 0.24, 0.56);
+    collar.rotation.x = Math.PI * 0.34;
+    spine.add(collar);
+
+    const bell = new THREE.Mesh(S.geoSmallSphere, S.matBell);
+    bell.scale.setScalar(0.095);
+    bell.position.set(0, -0.02, 0.80);
+    spine.add(bell);
+
+    // 3. Expressive Big Chibi Head
+    const headPivot = new THREE.Group();
+    headPivot.position.set(0, 0.48, 0.62);
+    spine.add(headPivot);
+
+    const cranium = new THREE.Mesh(S.geoSphere, S.matHead);
+    cranium.rotation.y = -Math.PI / 2; // aligns face center u=0.5 to +Z!
+    cranium.scale.set(0.74, 0.68, 0.70);
+    headPivot.add(cranium);
+
+    // Smoothly blended smiling cheek puffs
+    [-0.25, 0.25].forEach((cx) => {
+      const cheek = new THREE.Mesh(S.geoSmallSphere, S.matWhite);
+      cheek.position.set(cx, -0.16, 0.32);
+      cheek.scale.set(0.32, 0.24, 0.28);
+      headPivot.add(cheek);
+    });
+
+    // Tapered creamy-white snout + glossy wet dark nose
+    const snout = new THREE.Mesh(S.geoSphere, S.matWhite);
+    snout.position.set(0, -0.15, 0.58);
+    snout.scale.set(0.34, 0.25, 0.38);
+    headPivot.add(snout);
+
+    const nose = new THREE.Mesh(S.geoSmallSphere, S.matNose);
+    nose.position.set(0, -0.06, 0.91);
+    nose.scale.set(0.115, 0.082, 0.09);
+    headPivot.add(nose);
+
+    const noseGlint = new THREE.Mesh(S.geoSmallSphere, S.matGlint);
+    noseGlint.position.set(-0.032, -0.035, 0.985);
+    noseGlint.scale.set(0.026, 0.016, 0.016);
+    headPivot.add(noseGlint);
+
+    // Cute 'ω' puppy smile arcs
+    [-0.082, 0.082].forEach((sx) => {
+      const sm = new THREE.Mesh(S.geoSmile, S.matNose);
+      sm.position.set(sx, -0.18, 0.86);
+      sm.rotation.z = Math.PI * 1.04;
+      headPivot.add(sm);
+    });
+
+    // Animated 3D pink tongue
+    const tonguePivot = new THREE.Group();
+    tonguePivot.position.set(0, -0.24, 0.80);
+    const tongue = new THREE.Mesh(S.geoSmallSphere, S.matPink);
+    tongue.scale.set(0.095, 0.13, 0.055);
+    tongue.position.set(0, -0.05, 0.02);
+    tonguePivot.add(tongue);
+    headPivot.add(tonguePivot);
+
+    // Optional 3D Red Park Leash held in mouth!
+    const leashGroup = new THREE.Group();
+    leashGroup.position.set(0.06, -0.22, 0.84);
+    const leashMesh = new THREE.Mesh(S.geoLeash, S.matCollar);
+    leashGroup.add(leashMesh);
+    leashGroup.visible = false;
+    headPivot.add(leashGroup);
+
+    // Open Glossy Puppy Eyes (with dual white catchlights + caramel brow beans)
+    const eyesOpen = new THREE.Group();
+    headPivot.add(eyesOpen);
+    [-1, 1].forEach((side) => {
+      const ex = side * 0.285;
+      const eye = new THREE.Mesh(S.geoSmallSphere, S.matEye);
+      eye.position.set(ex, 0.05, 0.60);
+      eye.scale.set(0.115, 0.125, 0.095);
+      eyesOpen.add(eye);
+
+      const glint1 = new THREE.Mesh(S.geoSmallSphere, S.matGlint);
+      glint1.position.set(ex - 0.032, 0.092, 0.685);
+      glint1.scale.setScalar(0.034);
+      eyesOpen.add(glint1);
+
+      const glint2 = new THREE.Mesh(S.geoSmallSphere, S.matGlint);
+      glint2.position.set(ex + 0.028, 0.018, 0.685);
+      glint2.scale.setScalar(0.017);
+      eyesOpen.add(glint2);
+
+      // Expressive soft white/cream eyebrow dot
+      const brow = new THREE.Mesh(S.geoSmallSphere, S.matWhite);
+      brow.position.set(ex * 0.92, 0.21, 0.58);
+      brow.scale.set(0.065, 0.038, 0.04);
+      brow.rotation.z = side * -0.22;
+      headPivot.add(brow);
+    });
+
+    // Happy Squinting '^ ^' Eyes (for belly-up & petted joy!)
+    const eyesHappy = new THREE.Group();
+    eyesHappy.visible = false;
+    headPivot.add(eyesHappy);
+    [-1, 1].forEach((side) => {
+      const sq = new THREE.Mesh(S.geoSquint, S.matEye);
+      sq.position.set(side * 0.285, 0.03, 0.63);
+      sq.rotation.z = Math.PI * 0.06;
+      eyesHappy.add(sq);
+    });
+
+    // Sculpted Pointed Upright Golden-Caramel Ears sunken seamlessly into skull
+    function makeEar(side) {
+      const piv = new THREE.Group();
+      piv.position.set(side * 0.36, 0.38, 0.05);
+      piv.rotation.z = side * -0.34;
+      piv.rotation.x = 0.14;
+
+      const outer = new THREE.Mesh(S.geoEarOuter, S.matTan);
+      outer.scale.set(1, 1, 0.48);
+      piv.add(outer);
+
+      const inner = new THREE.Mesh(S.geoEarInner, S.matInnerEar);
+      inner.position.set(0, 0.02, 0.075);
+      inner.scale.set(1, 1, 0.32);
+      piv.add(inner);
+
+      headPivot.add(piv);
+      return piv;
+    }
+    const earL = makeEar(-1);
+    const earR = makeEar(1);
+
+    // 4. Four Articulated Legs + Plump Paws + Pink Toe-Beans
+    function makeLeg(x, y, z) {
+      const piv = new THREE.Group();
+      piv.position.set(x, y, z);
+
+      const limb = new THREE.Mesh(S.geoLeg, S.matWhite);
+      limb.position.y = -0.20;
+      piv.add(limb);
+
+      const paw = new THREE.Mesh(S.geoSmallSphere, S.matWhite);
+      paw.position.set(0, -0.40, 0.05);
+      paw.scale.set(0.18, 0.12, 0.21);
+      piv.add(paw);
+
+      // Cute pink paw pad + toe beans on underside (shows during belly roll & jumps!)
+      const pad = new THREE.Mesh(S.geoSmallSphere, S.matToeBean);
+      pad.position.set(0, -0.49, 0.04);
+      pad.scale.set(0.085, 0.03, 0.085);
+      piv.add(pad);
+      [-0.065, 0, 0.065].forEach((bx, bi) => {
+        const bean = new THREE.Mesh(S.geoSmallSphere, S.matToeBean);
+        bean.position.set(bx, -0.485, 0.135 + (bi === 1 ? 0.02 : 0));
+        bean.scale.set(0.032, 0.022, 0.035);
+        piv.add(bean);
+      });
+
+      spine.add(piv);
+      return piv;
+    }
+    const legFL = makeLeg(-0.33, -0.18, 0.46);
+    const legFR = makeLeg(0.33, -0.18, 0.46);
+    const legBL = makeLeg(-0.34, -0.18, -0.44);
+    const legBR = makeLeg(0.34, -0.18, -0.44);
+
+    // 5. Fluffy Curved Wagging Tail (tilted slightly to the side so it peeks out adorably!)
+    const tailPivot = new THREE.Group();
+    tailPivot.position.set(0.12, 0.18, -0.76);
+    tailPivot.rotation.y = -0.25;
+    const tailMesh = new THREE.Mesh(S.geoTail, S.matWhite);
+    tailPivot.add(tailMesh);
+    const tailTip = new THREE.Mesh(S.geoSmallSphere, S.matTan);
+    tailTip.position.set(0, 0.16, -0.16);
+    tailTip.scale.setScalar(0.13);
+    tailPivot.add(tailTip);
+    spine.add(tailPivot);
+
+    // 6. Optional 3D Flapping Golden Butterfly flying right in front of Kakao's nose!
+    const butterfly = new THREE.Group();
+    butterfly.position.set(0, 0.72, 1.55);
+    butterfly.visible = false;
+    const wingGeo = new THREE.CircleGeometry(0.16, 12);
+    const wingL = new THREE.Mesh(wingGeo, S.matWing);
+    wingL.position.x = -0.11;
+    const wingR = new THREE.Mesh(wingGeo, S.matWing);
+    wingR.position.x = 0.11;
+    butterfly.add(wingL, wingR);
+    rig.add(butterfly);
+
+    return {
+      root,
+      rig,
+      spine,
+      shadow,
+      headPivot,
+      eyesOpen,
+      eyesHappy,
+      tonguePivot,
+      leashGroup,
+      earL,
+      earR,
+      legFL,
+      legFR,
+      legBL,
+      legBR,
+      tailPivot,
+      butterfly,
+      wingL,
+      wingR,
+    };
   }
 
-  /* ---- Helper tạo DOM 1 bé Kakao ---- */
-  function createDogEl({ pose = 'trot', size = 140, flip = false, text = '', photo = '' } = {}) {
-    const wrap = document.createElement('div');
-    wrap.className = 'k-actor';
-    wrap.style.width = size + 'px';
+  /* ---------------- Animate 1 3D Kakao Rig at 60fps ---------------- */
+  function updateActorPose(actor, t, dt) {
+    const m = actor.model;
+    const phase = t * actor.animSpeed + actor.seed;
+    const pose = actor.pose;
 
-    const body = document.createElement('div');
-    body.className = 'k-body' + (flip ? ' is-flipped' : '');
-    body.innerHTML = renderPose(pose);
-    wrap.appendChild(body);
+    // Smoothly interpolate position, yaw (ry), and scale
+    const kPos = 1 - Math.exp(-dt * actor.moveSharpness);
+    actor.nx += (actor.targetNx - actor.nx) * kPos;
+    actor.ny += (actor.targetNy - actor.ny) * kPos;
+    actor.scale += (actor.targetScale - actor.scale) * (1 - Math.exp(-dt * 9));
 
-    if (photo) {
-      const badge = document.createElement('div');
-      badge.className = 'k-photo-badge';
-      const img = new Image();
-      img.src = photo;
-      badge.appendChild(img);
-      wrap.appendChild(badge);
+    // Shortest-angle yaw interpolation
+    let dYaw = actor.targetYaw - actor.yaw;
+    while (dYaw > Math.PI) dYaw -= Math.PI * 2;
+    while (dYaw < -Math.PI) dYaw += Math.PI * 2;
+    actor.yaw += dYaw * (1 - Math.exp(-dt * 8));
+
+    // Spin burst (when petted or celebrating!)
+    if (actor.spinLeft > 0) {
+      const step = Math.min(actor.spinLeft, dt * Math.PI * 5.2);
+      actor.spinAngle += step;
+      actor.spinLeft -= step;
+    } else {
+      actor.spinAngle = 0;
     }
 
-    const bubble = document.createElement('div');
-    bubble.className = 'k-bubble' + (text ? ' is-visible' : '');
-    bubble.textContent = text || '';
-    wrap.appendChild(bubble);
-
-    return { wrap, body, bubble };
-  }
-
-  function popHearts(layer, xPct, yPct, count = 4) {
-    for (let i = 0; i < count; i++) {
-      const h = document.createElement('span');
-      h.className = 'k-float-heart';
-      h.textContent = i % 3 === 1 ? '🐾' : '❤️';
-      h.style.left = `calc(${xPct}% + ${rand(-26, 26).toFixed(0)}px)`;
-      h.style.top = `calc(${yPct}% + ${rand(-18, 8).toFixed(0)}px)`;
-      h.style.animationDelay = (i * 0.09) + 's';
-      layer.appendChild(h);
-      setTimeout(() => h.remove(), 1400);
+    m.leashGroup.visible = Boolean(actor.withLeash);
+    m.butterfly.visible = Boolean(actor.withButterfly);
+    if (actor.withButterfly) {
+      const flap = Math.sin(t * 24) * 0.85;
+      m.wingL.rotation.y = flap;
+      m.wingR.rotation.y = -flap;
+      m.butterfly.position.set(
+        Math.sin(t * 3.5) * 0.35,
+        0.72 + Math.sin(t * 5.2) * 0.18,
+        1.45 + Math.cos(t * 2.8) * 0.15
+      );
     }
-  }
 
-  function dropPawPrint(layer, xPct, yPct) {
-    const p = document.createElement('span');
-    p.className = 'k-paw-print';
-    p.textContent = '🐾';
-    p.style.left = xPct + '%';
-    p.style.top = yPct + '%';
-    layer.appendChild(p);
-    setTimeout(() => p.remove(), 1700);
+    // Natural eye blink (unless squinting happily)
+    const happySquint = pose === 'belly' || actor.forceHappy || actor.spinLeft > 0;
+    m.eyesHappy.visible = happySquint;
+    m.eyesOpen.visible = !happySquint;
+    if (!happySquint) {
+      const blinkCycle = (t + actor.seed) % 3.4;
+      const blinkScale = blinkCycle > 3.26 ? 0.08 : 1;
+      m.eyesOpen.scale.y = blinkScale;
+    }
+
+    // Always wag tail & pant tongue happily!
+    m.tailPivot.rotation.z = Math.sin(t * 15 + actor.seed) * 0.48;
+    m.tailPivot.rotation.x = Math.cos(t * 7.5 + actor.seed) * 0.15;
+    m.tonguePivot.scale.y = 0.92 + Math.sin(t * 11 + actor.seed) * 0.18;
+
+    // Reset baseline rig transforms before pose-specific layering
+    let targetRoll = 0;
+    let targetPitch = 0;
+    let hopY = 0;
+
+    if (pose === 'trot' || pose === 'leash') {
+      const g = t * 14 + actor.seed;
+      const swing = 0.68;
+      m.legFL.rotation.x = Math.sin(g) * swing;
+      m.legBR.rotation.x = Math.sin(g) * swing;
+      m.legFR.rotation.x = -Math.sin(g) * swing;
+      m.legBL.rotation.x = -Math.sin(g) * swing;
+
+      hopY = Math.abs(Math.sin(g)) * 0.14;
+      targetPitch = Math.cos(g * 2) * 0.06;
+      m.headPivot.rotation.z = Math.sin(g * 0.5) * 0.08;
+      m.headPivot.rotation.x = -0.06 + Math.sin(g) * 0.05;
+      m.earL.rotation.z = -0.36 + Math.abs(Math.sin(g)) * 0.18;
+      m.earR.rotation.z = 0.36 - Math.abs(Math.sin(g)) * 0.18;
+    } else if (pose === 'belly') {
+      // 180° 3D barrel roll onto back exposing pink tummy & paddling pink toe-beans!
+      targetRoll = Math.PI + Math.sin(t * 3.8 + actor.seed) * 0.16;
+      hopY = 0.08;
+      const pad = t * 10 + actor.seed;
+      m.legFL.rotation.x = -0.35 + Math.sin(pad) * 0.42;
+      m.legFR.rotation.x = -0.35 - Math.sin(pad) * 0.42;
+      m.legBL.rotation.x = 0.35 - Math.sin(pad * 0.9) * 0.38;
+      m.legBR.rotation.x = 0.35 + Math.sin(pad * 0.9) * 0.38;
+      m.headPivot.rotation.x = -0.22;
+      m.headPivot.rotation.z = Math.sin(t * 3.8 + actor.seed) * 0.12;
+      m.earL.rotation.z = -0.58;
+      m.earR.rotation.z = 0.58;
+    } else if (pose === 'playbow') {
+      // Front down, fluffy butt & wagging tail high up, excited little hops!
+      targetPitch = 0.34;
+      const bounce = Math.max(0, Math.sin(t * 7.5 + actor.seed));
+      hopY = bounce * 0.24;
+      m.legFL.rotation.x = -0.82;
+      m.legFR.rotation.x = -0.82;
+      m.legBL.rotation.x = 0.22;
+      m.legBR.rotation.x = 0.22;
+      m.headPivot.rotation.x = -0.38;
+      m.headPivot.rotation.z = Math.sin(t * 4.2 + actor.seed) * 0.16;
+      m.earL.rotation.z = -0.28 - bounce * 0.15;
+      m.earR.rotation.z = 0.28 + bounce * 0.15;
+    } else {
+      // 'sit': Polite puppy sit, tilting head adorably left & right!
+      targetPitch = -0.28;
+      hopY = -0.05 + Math.sin(phase * 2.2) * 0.025;
+      m.legFL.rotation.x = 0.26;
+      m.legFR.rotation.x = 0.26;
+      m.legBL.rotation.x = -0.95;
+      m.legBR.rotation.x = -0.95;
+      m.headPivot.rotation.x = 0.24;
+      m.headPivot.rotation.z = Math.sin(t * 2.4 + actor.seed) * 0.22;
+      m.headPivot.rotation.y = Math.sin(t * 1.5 + actor.seed) * 0.16;
+      m.earL.rotation.z = -0.34 + Math.sin(t * 3.2 + actor.seed) * 0.08;
+      m.earR.rotation.z = 0.34 + Math.cos(t * 3.2 + actor.seed) * 0.08;
+    }
+
+    if (actor.spinLeft > 0) {
+      hopY += Math.sin((actor.spinLeft / (Math.PI * 2)) * Math.PI) * 0.55;
+    }
+
+    actor.roll += (targetRoll - actor.roll) * (1 - Math.exp(-dt * 8));
+    actor.pitch += (targetPitch - actor.pitch) * (1 - Math.exp(-dt * 9));
+
+    m.rig.position.y = hopY;
+    m.rig.rotation.y = actor.yaw + actor.spinAngle;
+    m.spine.rotation.z = actor.roll;
+    m.spine.rotation.x = actor.pitch;
+    m.root.rotation.z = actor.bankZ || 0;
+
+    const s = Math.max(0.001, actor.scale);
+    m.root.scale.setScalar(s);
+    m.shadow.scale.setScalar(clamp(1 - hopY * 0.65, 0.45, 1.05));
+    m.shadow.visible = !actor.hideShadow;
   }
 
   /* =====================================================================
-     CONTROLLER
+     3D SCENE & PACK CONTROLLER
      ===================================================================== */
   class KakaoPackController {
     constructor(layer) {
       this.layer = layer;
       this.timers = [];
-      this.preludeActors = [];
+      this.actors = [];
       this.companion = null;
-      this.compX = 16;
+      this.compX = 0.14;
       this.compTimer = null;
       this.lastAction = '';
       this.pageKind = 'letter';
       this.sendFx = () => {};
+      this.running = false;
+      this.lastTs = 0;
+
+      if (!layer) return;
+      this._initThree();
+    }
+
+    _initThree() {
+      this.canvas = document.createElement('canvas');
+      this.canvas.id = 'kakao-gl';
+      this.layer.appendChild(this.canvas);
+
+      this.domOverlay = document.createElement('div');
+      this.domOverlay.className = 'k-dom-overlay';
+      this.layer.appendChild(this.domOverlay);
+
+      this.renderer = new THREE.WebGLRenderer({
+        canvas: this.canvas,
+        alpha: true,
+        antialias: true,
+        powerPreference: 'high-performance',
+      });
+      this.renderer.setClearColor(0x000000, 0);
+      if ('outputColorSpace' in this.renderer && THREE.SRGBColorSpace) {
+        this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+      } else if ('outputEncoding' in this.renderer && THREE.sRGBEncoding) {
+        this.renderer.outputEncoding = THREE.sRGBEncoding;
+      }
+
+      this.scene = new THREE.Scene();
+
+      // Orthographic-feel narrow FOV camera so perspective stays flattering across the whole screen
+      this.camera = new THREE.PerspectiveCamera(28, 1, 0.1, 60);
+      this.camera.position.set(0, 0.35, 16);
+      this.camera.lookAt(0, 0, 0);
+
+      // Warm vinyl-plush studio 3-point lighting (soft cream key + caramel bounce + golden rim)
+      const hemi = new THREE.HemisphereLight(0xfff8ee, 0xd49a6a, 1.28);
+      this.scene.add(hemi);
+
+      const keyLight = new THREE.DirectionalLight(0xfff4df, 1.05);
+      keyLight.position.set(4.5, 7.5, 9.0);
+      this.scene.add(keyLight);
+
+      const rimLight = new THREE.DirectionalLight(0xffcf8c, 0.72);
+      rimLight.position.set(-6.0, 4.5, -5.5);
+      this.scene.add(rimLight);
+
+      this._projVec = new THREE.Vector3();
+      this.resize();
+      window.addEventListener('resize', () => this.resize());
+    }
+
+    resize() {
+      if (!this.renderer) return;
+      this.W = window.innerWidth;
+      this.H = window.innerHeight;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      this.renderer.setPixelRatio(dpr);
+      this.renderer.setSize(this.W, this.H, false);
+      this.camera.aspect = this.W / Math.max(1, this.H);
+      this.camera.updateProjectionMatrix();
+
+      // Visible world height & width at z = 0 plane (distance = 16)
+      const vFov = (this.camera.fov * Math.PI) / 180;
+      this.visH = 2 * Math.tan(vFov / 2) * 16;
+      this.visW = this.visH * this.camera.aspect;
+    }
+
+    // Convert normalized screen (0..1 left->right, 0..1 top->bottom) to world (x, y) at z=0
+    _screenToWorld(nx, ny) {
+      return [
+        (nx - 0.5) * this.visW,
+        (0.5 - ny) * this.visH,
+      ];
+    }
+
+    _wake() {
+      if (this.running) return;
+      this.running = true;
+      this.lastTs = performance.now();
+      requestAnimationFrame((ts) => this._frame(ts));
     }
 
     _after(ms, fn) {
       const id = setTimeout(fn, ms);
       this.timers.push(id);
       return id;
+    }
+
+    _spawnActor(opts = {}) {
+      const model = createKakaoRig();
+      this.scene.add(model.root);
+
+      const bubble = document.createElement('div');
+      bubble.className = 'k-bubble' + (opts.hero ? ' k-hero-bubble' : '') + (opts.companion ? ' k-comp-bubble' : '');
+      if (opts.text) {
+        bubble.textContent = opts.text;
+        bubble.classList.add('is-visible');
+      }
+      this.domOverlay.appendChild(bubble);
+
+      let badge = null;
+      if (opts.photo) {
+        badge = document.createElement('div');
+        badge.className = 'k-photo-badge';
+        const img = new Image();
+        img.src = opts.photo;
+        badge.appendChild(img);
+        this.domOverlay.appendChild(badge);
+      }
+
+      let hitBox = null;
+      if (opts.interactive) {
+        hitBox = document.createElement('button');
+        hitBox.className = 'k-hitbox';
+        hitBox.title = 'Click để nựng Kakao!';
+        hitBox.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.petCompanion();
+        });
+        this.domOverlay.appendChild(hitBox);
+      }
+
+      const actor = {
+        model,
+        bubble,
+        badge,
+        hitBox,
+        nx: opts.nx ?? 0.5,
+        ny: opts.ny ?? 0.5,
+        targetNx: opts.targetNx ?? opts.nx ?? 0.5,
+        targetNy: opts.targetNy ?? opts.ny ?? 0.5,
+        moveSharpness: opts.moveSharpness ?? 3.6,
+        scale: opts.startScale ?? 0.01,
+        targetScale: opts.scale ?? 0.85,
+        yaw: opts.yaw ?? 0,
+        targetYaw: opts.targetYaw ?? opts.yaw ?? 0,
+        roll: 0,
+        pitch: 0,
+        bankZ: opts.bankZ ?? 0,
+        hideShadow: Boolean(opts.hideShadow),
+        pose: opts.pose || 'trot',
+        withLeash: Boolean(opts.withLeash),
+        withButterfly: Boolean(opts.withButterfly),
+        forceHappy: false,
+        spinLeft: 0,
+        spinAngle: 0,
+        animSpeed: rand(0.92, 1.08),
+        seed: rand(0, 10),
+        bubbleOffsetY: opts.bubbleOffsetY ?? 1.25,
+        edgeRight: Boolean(opts.edgeRight),
+      };
+
+      this.actors.push(actor);
+      this._wake();
+      return actor;
+    }
+
+    _removeActor(actor) {
+      const idx = this.actors.indexOf(actor);
+      if (idx >= 0) this.actors.splice(idx, 1);
+      if (actor.model && actor.model.root) this.scene.remove(actor.model.root);
+      if (actor.bubble) actor.bubble.remove();
+      if (actor.badge) actor.badge.remove();
+      if (actor.hitBox) actor.hitBox.remove();
     }
 
     clearAll() {
@@ -256,209 +770,275 @@
         clearTimeout(this.compTimer);
         this.compTimer = null;
       }
-      this.preludeActors = [];
+      [...this.actors].forEach((a) => this._removeActor(a));
       this.companion = null;
-      if (this.layer) this.layer.innerHTML = '';
+      if (this.domOverlay) {
+        this.domOverlay.querySelectorAll('.k-float-heart, .k-paw-print').forEach((el) => el.remove());
+      }
+      if (this.renderer && this.scene && this.camera) {
+        this.renderer.clear();
+      }
     }
 
-    /* ---------------- 1. PRELUDE: ĐÀN KAKAO ÙA RA QUẬY & ĐÒI ĐI CÔNG VIÊN ---------------- */
+    _popHearts(nx, ny, count = 4) {
+      if (!this.domOverlay) return;
+      for (let i = 0; i < count; i++) {
+        const h = document.createElement('span');
+        h.className = 'k-float-heart';
+        h.textContent = i % 3 === 1 ? '🐾' : '❤️';
+        h.style.left = `calc(${(nx * 100).toFixed(1)}% + ${rand(-26, 26).toFixed(0)}px)`;
+        h.style.top = `calc(${(ny * 100).toFixed(1)}% + ${rand(-24, 6).toFixed(0)}px)`;
+        h.style.animationDelay = (i * 0.08) + 's';
+        this.domOverlay.appendChild(h);
+        setTimeout(() => h.remove(), 1350);
+      }
+    }
+
+    _dropPaw(nx, ny) {
+      if (!this.domOverlay) return;
+      const p = document.createElement('span');
+      p.className = 'k-paw-print';
+      p.textContent = '🐾';
+      p.style.left = (nx * 100).toFixed(1) + '%';
+      p.style.top = (ny * 100).toFixed(1) + '%';
+      this.domOverlay.appendChild(p);
+      setTimeout(() => p.remove(), 1600);
+    }
+
+    _frame(now) {
+      if (!this.actors.length) {
+        this.running = false;
+        this.renderer.clear();
+        return;
+      }
+      const dt = Math.min(0.05, Math.max(0.001, (now - this.lastTs) / 1000));
+      this.lastTs = now;
+      const t = now * 0.001;
+
+      for (let i = 0; i < this.actors.length; i++) {
+        const a = this.actors[i];
+        updateActorPose(a, t, dt);
+
+        const [wx, wy] = this._screenToWorld(a.nx, a.ny);
+        a.model.root.position.set(wx, wy, a.hero ? 1.2 : 0);
+
+        // Project 3D anchor above head to 2D screen pixels for speech bubble, badge & hitbox
+        this._projVec.set(wx, wy + a.bubbleOffsetY * a.scale, a.hero ? 1.2 : 0);
+        this._projVec.project(this.camera);
+        const sx = (this._projVec.x * 0.5 + 0.5) * this.W;
+        const sy = (-this._projVec.y * 0.5 + 0.5) * this.H;
+
+        if (a.bubble) {
+          if (a.edgeRight) {
+            a.bubble.style.left = (sx - 150) + 'px';
+            a.bubble.style.top = (sy + 26) + 'px';
+          } else {
+            const clampedX = clamp(sx, 140, this.W - 140);
+            a.bubble.style.left = clampedX + 'px';
+            a.bubble.style.top = Math.max(18, sy - 10) + 'px';
+          }
+        }
+        if (a.badge) {
+          a.badge.style.left = (sx + 68) + 'px';
+          a.badge.style.top = (sy + 52) + 'px';
+        }
+        if (a.hitBox) {
+          a.hitBox.style.left = sx + 'px';
+          a.hitBox.style.top = (sy + 48) + 'px';
+        }
+      }
+
+      this.renderer.render(this.scene, this.camera);
+      requestAnimationFrame((ts) => this._frame(ts));
+    }
+
+    /* ---------------- 1. PRELUDE: ĐÀN 5 BÉ KAKAO 3D ÙA RA ĐÒI ĐI CÔNG VIÊN ---------------- */
     runPrelude(cfg = {}, sendFx = () => {}) {
       this.clearAll();
       this.sendFx = sendFx;
-      if (!this.layer) return;
-
       const lines = cfg.preludeLines || {};
 
-      // Bé #1: Ngậm dây dắt chạy từ mép trái vào đòi đi công viên!
+      // Bé #1: Chạy 3D từ trái vào ngậm dây dắt đỏ đòi đi công viên, rồi xoay mặt nhìn Khuê!
       this._after(0, () => {
-        sendFx({ t: 'sfx', kind: 'kakaoPop', x: 0.28 });
-        const a1 = createDogEl({
+        sendFx({ t: 'sfx', kind: 'kakaoPop', x: 0.25 });
+        const a1 = this._spawnActor({
+          nx: -0.12,
+          ny: 0.63,
+          targetNx: 0.22,
+          targetNy: 0.63,
+          moveSharpness: 2.8,
+          scale: 0.88,
+          startScale: 0.88,
+          yaw: Math.PI * 0.46,
+          targetYaw: Math.PI * 0.46,
           pose: 'leash',
-          size: 152,
+          withLeash: true,
           text: lines.leash || 'Gâu gâu!! Đàn Kakao chiếm máy rồi, dẫn đi công viên mới trả nha! 🌳🐾',
         });
-        a1.wrap.style.left = '-14%';
-        a1.wrap.style.top = '60%';
-        this.layer.appendChild(a1.wrap);
-        this.preludeActors.push({ ...a1, exitX: '-16%', exitY: '62%' });
-
-        requestAnimationFrame(() => {
-          a1.wrap.style.transition = 'left 1.15s cubic-bezier(.16, 1, .3, 1), top 0.6s ease, opacity 0.4s ease';
-          a1.wrap.style.left = '23%';
-        });
-        [220, 480, 740].forEach((ms, i) => {
-          this._after(ms, () => dropPawPrint(this.layer, 4 + i * 6, 68));
+        a1.exitNx = -0.18; a1.exitNy = 0.64; a1.exitYaw = -Math.PI * 0.48;
+        [240, 500, 760].forEach((ms, i) => this._after(ms, () => this._dropPaw(0.04 + i * 0.06, 0.70)));
+        this._after(1050, () => {
+          a1.pose = 'playbow';
+          a1.targetYaw = 0.32; // Xoay người 3D hướng thẳng ra camera!
         });
       });
 
-      // Bé #2: Thò đầu ngang từ mép phải màn hình ra nghiêng đầu hỏi!
+      // Bé #2: Thò nghiêng 3D từ mép phải màn hình ra hờn dỗi!
       this._after(850, () => {
-        sendFx({ t: 'sfx', kind: 'pawTap', x: 0.88, step: 1 });
-        const a2 = createDogEl({
+        sendFx({ t: 'sfx', kind: 'pawTap', x: 0.9, step: 1 });
+        const a2 = this._spawnActor({
+          nx: 1.10,
+          ny: 0.32,
+          targetNx: 0.95,
+          targetNy: 0.32,
+          moveSharpness: 4.5,
+          scale: 0.82,
+          startScale: 0.82,
+          yaw: -0.35,
+          targetYaw: -0.35,
+          bankZ: 0.95,
+          hideShadow: true,
+          edgeRight: true,
           pose: 'sit',
-          size: 132,
           text: lines.peek || 'Ủa mở máy tính mà hổng dẫn Kakao đi công viên hả chị Khuê?!',
         });
-        a2.wrap.classList.add('k-edge-right');
-        a2.wrap.style.left = '106%';
-        a2.wrap.style.top = '32%';
-        a2.body.style.transform = 'rotate(-76deg)';
-        this.layer.appendChild(a2.wrap);
-        this.preludeActors.push({ ...a2, exitX: '110%', exitY: '32%' });
-
-        requestAnimationFrame(() => {
-          a2.wrap.style.transition = 'left 0.7s cubic-bezier(.18, 1.3, .32, 1), opacity 0.4s ease';
-          a2.wrap.style.left = '95%';
-        });
+        a2.exitNx = 1.14; a2.exitNy = 0.32; a2.exitYaw = 0.4;
       });
 
-      // Bé #3: Lăn đùng ngửa bụng ăn vạ góc phải dưới + ảnh thật Kakao cười tít mắt!
-      this._after(1750, () => {
-        sendFx({ t: 'sfx', kind: 'pawTap', x: 0.72, step: 2 });
-        sendFx({ t: 'burst', x: 0.74, y: 0.74, type: 'glitter', palette: 'gold', size: 0.65 });
-        const a3 = createDogEl({
+      // Bé #3: Chạy vào góc phải dưới rồi lăn đùng 180° ngửa bụng hồng + 4 chân đệm hồng đạp gió!
+      this._after(1700, () => {
+        sendFx({ t: 'sfx', kind: 'pawTap', x: 0.74, step: 2 });
+        sendFx({ t: 'burst', x: 0.74, y: 0.73, type: 'glitter', palette: 'gold', size: 0.65 });
+        const a3 = this._spawnActor({
+          nx: 0.75,
+          ny: 0.74,
+          targetNx: 0.75,
+          targetNy: 0.74,
+          scale: 0.88,
+          yaw: -0.28,
+          targetYaw: -0.28,
           pose: 'belly',
-          size: 150,
           photo: cfg.photo || 'assets/real_photos/kakao_sleep.jpg',
           text: lines.belly || 'Nằm lăn ra ăn vạ luôn! Gãi bụng 10 cái mới cho xem tiếp!',
         });
-        a3.wrap.style.left = '73%';
-        a3.wrap.style.top = '72%';
-        a3.wrap.style.transform = 'translate(-50%, -50%) scale(0.3)';
-        this.layer.appendChild(a3.wrap);
-        this.preludeActors.push({ ...a3, exitX: '112%', exitY: '76%' });
-
-        requestAnimationFrame(() => {
-          a3.wrap.style.transition = 'transform 0.6s cubic-bezier(.18, 1.35, .32, 1), left 0.55s ease, opacity 0.4s ease';
-          a3.wrap.style.transform = 'translate(-50%, -50%) scale(1)';
-        });
+        a3.exitNx = 1.16; a3.exitNy = 0.75; a3.exitYaw = Math.PI * 0.48;
       });
 
-      // Bé #4: Chạy zoomies vèo ngang phía trên rượt bướm vàng!
-      this._after(2650, () => {
+      // Bé #4: Phóng zoomies 3D ngang phía trên rượt bướm vàng đập cánh 3D!
+      this._after(2600, () => {
         sendFx({ t: 'sfx', kind: 'pawTap', x: 0.35, step: 3 });
-        const a4 = createDogEl({
+        const a4 = this._spawnActor({
+          nx: 1.12,
+          ny: 0.24,
+          targetNx: 0.27,
+          targetNy: 0.24,
+          moveSharpness: 2.2,
+          scale: 0.80,
+          startScale: 0.80,
+          yaw: -Math.PI * 0.45,
+          targetYaw: -Math.PI * 0.45,
           pose: 'trot',
-          size: 136,
-          flip: true,
+          withButterfly: true,
           text: lines.zoom || 'Đi công viên bắt bướm thôiii gâu gâu!! 🦋',
         });
-        const bf = document.createElement('span');
-        bf.className = 'k-butterfly';
-        bf.textContent = '🦋';
-        a4.wrap.appendChild(bf);
-
-        a4.wrap.style.left = '110%';
-        a4.wrap.style.top = '23%';
-        this.layer.appendChild(a4.wrap);
-        this.preludeActors.push({ ...a4, exitX: '-16%', exitY: '21%' });
-
-        requestAnimationFrame(() => {
-          a4.wrap.style.transition = 'left 1.45s cubic-bezier(.16, 1, .3, 1), opacity 0.4s ease';
-          a4.wrap.style.left = '25%';
-        });
-        [250, 520, 800].forEach((ms, i) => {
-          this._after(ms, () => dropPawPrint(this.layer, 82 - i * 16, 28));
+        a4.exitNx = -0.18; a4.exitNy = 0.22; a4.exitYaw = -Math.PI * 0.48;
+        [260, 540, 820].forEach((ms, i) => this._after(ms, () => this._dropPaw(0.84 - i * 0.16, 0.30)));
+        this._after(1450, () => {
+          a4.targetYaw = 0.22;
+          a4.pose = 'sit';
         });
       });
 
-      // Bé #5 (Trung tâm): Nhún nhảy chổng mông phát hiện hôm nay kỷ niệm 4 năm!
-      this._after(3650, () => {
+      // Bé #5 (Hero 3D chính giữa): Nhảy xoay 360° ra giữa màn hình phát hiện kỷ niệm 4 năm!
+      this._after(3600, () => {
         sendFx({ t: 'sfx', kind: 'kakaoPop', x: 0.5 });
-        sendFx({ t: 'burst', x: 0.5, y: 0.46, type: 'heart', palette: 'rose', size: 0.95 });
-        const a5 = createDogEl({
+        sendFx({ t: 'burst', x: 0.5, y: 0.48, type: 'heart', palette: 'rose', size: 0.95 });
+        const a5 = this._spawnActor({
+          nx: 0.50,
+          ny: 0.52,
+          targetNx: 0.50,
+          targetNy: 0.52,
+          scale: 1.16,
+          yaw: 0,
+          targetYaw: 0,
           pose: 'playbow',
-          size: 168,
+          hero: true,
+          bubbleOffsetY: 1.32,
           text: lines.realize || 'Ủa khoan... hôm nay kỷ niệm 4 năm của anh Quân với chị Khuê hả?!',
         });
-        a5.wrap.classList.add('k-hero');
-        a5.wrap.style.left = '50%';
-        a5.wrap.style.top = '48%';
-        a5.wrap.style.transform = 'translate(-50%, -50%) scale(0.35)';
-        this.layer.appendChild(a5.wrap);
-        this.preludeActors.push({ ...a5, exitX: '50%', exitY: '114%', isHero: true });
+        a5.hero = true;
+        a5.spinLeft = Math.PI * 2;
+        a5.exitNx = 0.50; a5.exitNy = 1.18; a5.exitYaw = 0;
 
-        requestAnimationFrame(() => {
-          a5.wrap.style.transition = 'transform 0.62s cubic-bezier(.18, 1.35, .32, 1), top 0.55s ease, opacity 0.4s ease';
-          a5.wrap.style.transform = 'translate(-50%, -50%) scale(1)';
-        });
-
-        // Khúc 5.15s: Cả đàn Kakao đồng loạt bắn tim & nhường sân khấu!
+        // Cả đàn nhảy xoay ăn mừng & nhường sân khấu!
         this._after(1550, () => {
           sendFx({ t: 'sfx', kind: 'kakaoDone', x: 0.5 });
           sendFx({ t: 'burst', x: 0.5, y: 0.28, type: 'doubleHeart', palette: 'rose', size: 1.15 });
+          a5.spinLeft = Math.PI * 2;
+          a5.forceHappy = true;
           a5.bubble.textContent =
             lines.handover || 'Thôi hôm nay Kakao nhịn đi công viên 1 bữa! Nhường chỗ cho anh Quân chúc mừng chị Khuê nè ❤️';
-          popHearts(this.layer, 50, 42, 5);
-          popHearts(this.layer, 23, 55, 3);
-          popHearts(this.layer, 73, 66, 3);
+          this._popHearts(0.50, 0.44, 5);
+          this._popHearts(0.22, 0.56, 3);
+          this._popHearts(0.75, 0.66, 3);
         });
       });
     }
 
     scatterPrelude() {
-      this.preludeActors.forEach((a) => {
-        a.bubble.classList.remove('is-visible');
-        a.wrap.style.transition = 'left 0.55s cubic-bezier(.6, 0, .9, .4), top 0.55s cubic-bezier(.6, 0, .9, .4), opacity 0.45s ease';
-        a.wrap.style.left = a.exitX;
-        a.wrap.style.top = a.exitY;
-        a.wrap.style.opacity = '0';
+      this.actors.forEach((a) => {
+        if (a.bubble) a.bubble.classList.remove('is-visible');
+        if (a.badge) a.badge.style.opacity = '0';
+        a.pose = 'trot';
+        a.bankZ = 0;
+        a.targetYaw = a.exitYaw ?? Math.PI * 0.48;
+        a.moveSharpness = 3.8;
+        a.targetNx = a.exitNx ?? 1.16;
+        a.targetNy = a.exitNy ?? a.ny;
+        a.targetScale = 0.5;
       });
-      this._after(600, () => {
-        if (!this.companion && this.layer) this.layer.innerHTML = '';
-        this.preludeActors = [];
+      this._after(620, () => {
+        if (!this.companion) this.clearAll();
       });
     }
 
-    /* ---------------- 2. TRONG LÚC ĐỌC THƯ: BÉ KAKAO CHẠY CHƠI ĐA DẠNG ---------------- */
+    /* ---------------- 2. TRONG LÚC ĐỌC THƯ: BÉ KAKAO 3D CHẠY CHƠI & CHO NỰNG ---------------- */
     startStage(cfg = {}, sendFx = () => {}) {
       this.clearAll();
       this.sendFx = sendFx;
-      if (!this.layer) return;
+      this.compX = 0.14;
 
-      this.stageCfg = cfg;
-      this.compX = 13;
-
-      const comp = createDogEl({
+      const comp = this._spawnActor({
+        nx: -0.08,
+        ny: 0.86,
+        targetNx: this.compX,
+        targetNy: 0.86,
+        moveSharpness: 2.4,
+        scale: 0.68,
+        startScale: 0.68,
+        yaw: Math.PI * 0.45,
+        targetYaw: Math.PI * 0.45,
         pose: 'trot',
-        size: 108,
-        text: 'Đọc thư từ từ thôi nha, xong dẫn Kakao đi công viên nhaaa! 🐾',
+        companion: true,
+        interactive: true,
+        bubbleOffsetY: 1.38,
+        text: 'Đọc thư thong thả nha, xong dắt Kakao đi công viên nhaaa! 🌳🐾',
       });
-      comp.wrap.classList.add('k-companion');
-      comp.wrap.style.left = '-8%';
-      comp.wrap.style.bottom = '56px';
-      this.layer.appendChild(comp.wrap);
       this.companion = comp;
 
-      // Cho phép click nựng bé Kakao bất kỳ lúc nào!
-      comp.wrap.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.petCompanion();
-      });
-
-      requestAnimationFrame(() => {
-        comp.wrap.style.transition = 'left 1.8s cubic-bezier(.16, 1, .3, 1)';
-        comp.wrap.style.left = this.compX + '%';
-      });
-
-      this._after(1850, () => {
+      this._after(1500, () => {
         if (!this.companion) return;
-        this._setCompPose('sit', false);
+        this.companion.pose = 'sit';
+        this.companion.targetYaw = 0.25;
       });
-      this._after(4600, () => {
+      this._after(4500, () => {
         if (this.companion) this.companion.bubble.classList.remove('is-visible');
       });
 
       this._scheduleNextAntic(5600);
     }
 
-    _setCompPose(pose, flip = false) {
-      if (!this.companion) return;
-      this.companion.body.className = 'k-body' + (flip ? ' is-flipped' : '');
-      this.companion.body.innerHTML = renderPose(pose);
-    }
-
-    _say(text, holdMs = 3600) {
+    _say(text, holdMs = 3800) {
       if (!this.companion) return;
       const b = this.companion.bubble;
       b.textContent = text;
@@ -469,61 +1049,91 @@
     }
 
     petCompanion() {
-      if (!this.companion) return;
-      this.sendFx({ t: 'sfx', kind: 'kakaoPop', x: this.compX / 100 });
-      this._setCompPose('playbow', this.compX > 50);
-      popHearts(this.layer, this.compX, 86, 5);
-      const petLines = [
-        'Á chị Khuê nựng Kakao kìaaa thương quá ❤️',
-        'Gâu gâu!! Thương chị Khuê với anh Quân nhất nhà!',
-        'Nựng xong xíu nhớ dắt con đi công viên thiệt nha! 🌳',
-        'Hihi được gãi đầu sướng quá điii 🐾',
-      ];
-      this._say(pick(petLines), 3600);
-      this._after(2200, () => this._setCompPose('sit', this.compX > 50));
+      const c = this.companion;
+      if (!c) return;
+      this.sendFx({ t: 'sfx', kind: 'kakaoPop', x: c.nx });
+      c.spinLeft = Math.PI * 2;
+      c.pose = 'playbow';
+      c.targetYaw = 0;
+      this._popHearts(c.nx, 0.82, 5);
+      this._say(
+        pick([
+          'Á chị Khuê nựng Kakao kìaaa thương quá ❤️',
+          'Gâu gâu!! Thương chị Khuê với anh Quân nhất nhà!',
+          'Nựng xong xíu nhớ dắt con đi công viên thiệt nha! 🌳',
+          'Hihi được gãi đầu sướng tít mắt luôn 🐾',
+        ]),
+        3600
+      );
+      this._after(2100, () => {
+        if (!this.companion) return;
+        this.companion.pose = 'sit';
+        this.companion.targetYaw = this.compX < 0.5 ? 0.25 : -0.25;
+      });
     }
 
     onPageChange(index, page) {
-      if (!this.companion) return;
+      const c = this.companion;
+      if (!c) return;
       if (page && page.finale) {
         this.pageKind = 'finale';
-        this._moveCompTo(14, 'trot', () => {
-          this._setCompPose('sit', false);
+        this._walkCompTo(0.14, false, () => {
+          c.pose = 'sit';
+          c.targetYaw = 0.22;
           this._say('Pháo hoa đẹp quá trời luôn gâu gâu!! ✨', 4200);
         });
       } else if (page && page.type === 'rooms') {
         this.pageKind = 'rooms';
-        this._setCompPose('playbow', this.compX > 50);
-        popHearts(this.layer, this.compX, 86, 3);
-        this._say('Đi Hồ Tràm với Phuket nhớ cho Kakao đi ké nha!! 🐾', 4400);
+        c.pose = 'playbow';
+        c.spinLeft = Math.PI * 2;
+        c.targetYaw = this.compX < 0.5 ? 0.22 : -0.22;
+        this._popHearts(this.compX, 0.82, 3);
+        this._say('Anh chị đi vi vu về nhớ dắt Kakao bù 3 vòng công viên nha!! 🌳🐾', 4300);
       } else {
         this.pageKind = 'letter';
       }
     }
 
-    _moveCompTo(targetX, walkPose = 'trot', onDone) {
-      if (!this.companion) return;
-      const dx = targetX - this.compX;
-      const flip = dx < 0;
+    _walkCompTo(destNx, withLeash = false, onArrive) {
+      const c = this.companion;
+      if (!c) return;
+      const dx = destNx - this.compX;
+      const dir = dx >= 0 ? 1 : -1;
       const dist = Math.abs(dx);
-      const durSec = Math.max(1.2, Math.min(3.4, dist * 0.045));
+      const durMs = clamp(dist * 3400, 1200, 2900);
 
-      this._setCompPose(walkPose, flip);
-      this.companion.wrap.style.transition = `left ${durSec.toFixed(2)}s linear`;
-      this.companion.wrap.style.left = targetX + '%';
+      c.withLeash = withLeash;
+      c.pose = withLeash ? 'leash' : 'trot';
+      c.targetYaw = dir * Math.PI * 0.46;
 
-      const steps = Math.min(4, Math.max(2, Math.floor(dist / 14)));
-      for (let s = 1; s <= steps; s++) {
-        const sx = this.compX + (dx * s) / (steps + 1);
-        this._after((durSec * 1000 * s) / (steps + 1), () => {
-          if (this.companion) dropPawPrint(this.layer, sx, 91);
+      // Smooth linear-ish stride via timed steps + paw prints
+      const startX = this.compX;
+      const t0 = performance.now();
+      c.moveSharpness = 9.0;
+
+      const stepTick = () => {
+        if (this.companion !== c) return;
+        const k = clamp((performance.now() - t0) / durMs, 0, 1);
+        const cur = startX + dx * k;
+        c.targetNx = cur;
+        this.compX = cur;
+        if (k < 1) {
+          requestAnimationFrame(stepTick);
+        } else {
+          c.moveSharpness = 3.6;
+          c.withLeash = false;
+          c.withButterfly = false;
+          if (onArrive) onArrive();
+        }
+      };
+      requestAnimationFrame(stepTick);
+
+      const prints = Math.min(4, Math.max(2, Math.round(dist * 6)));
+      for (let i = 1; i <= prints; i++) {
+        this._after((durMs * i) / (prints + 1), () => {
+          if (this.companion === c) this._dropPaw(startX + (dx * i) / (prints + 1), 0.90);
         });
       }
-
-      this.compX = targetX;
-      this._after(durSec * 1000 + 60, () => {
-        if (this.companion && onDone) onDone();
-      });
     }
 
     _scheduleNextAntic(delayMs = 5800) {
@@ -532,65 +1142,78 @@
     }
 
     _doRandomAntic() {
-      if (!this.companion) return;
+      const c = this.companion;
+      if (!c) return;
 
       const actions = ['walk_across', 'leash_park', 'belly_roll', 'chase_butterfly', 'sit_cute'];
-      const pool = actions.filter((a) => a !== this.lastAction);
-      const act = pick(pool);
+      const act = pick(actions.filter((a) => a !== this.lastAction));
       this.lastAction = act;
 
-      // Chọn vị trí ở 2 bên lề trái (10..24%) hoặc phải (76..89%) để không bao giờ che tờ thư ở giữa
-      const goRight = this.compX < 50;
-      const destSideX = goRight ? rand(76, 88) : rand(11, 23);
-      const nearbyX = this.compX < 50 ? rand(11, 24) : rand(76, 88);
+      const goRight = this.compX < 0.5;
+      const otherSide = goRight ? rand(0.79, 0.88) : rand(0.12, 0.21);
+      const sameSide = this.compX < 0.5 ? rand(0.12, 0.22) : rand(0.78, 0.88);
 
       if (act === 'walk_across') {
-        this._say(pick([
-          'Chạy qua bên này hóng chuyện tiếp nè 🐾',
-          'Lạch bạch... lạch bạch...',
-          'Đi tuần tra quanh bức thư của hai anh chị!',
-        ]), 2800);
-        this._moveCompTo(destSideX, 'trot', () => {
-          this._setCompPose('sit', this.compX > 50);
+        this._say(
+          pick([
+            'Chạy lon ton qua bên này hóng tiếp nè 🐾',
+            'Lạch bạch... đi tuần quanh bức thư của anh chị!',
+            'Chạy tập thể dục khởi động chờ đi công viên!',
+          ]),
+          2800
+        );
+        this._walkCompTo(otherSide, false, () => {
+          c.pose = 'sit';
+          c.targetYaw = this.compX < 0.5 ? 0.25 : -0.25;
           this._scheduleNextAntic(rand(5200, 6800));
         });
       } else if (act === 'leash_park') {
-        this._moveCompTo(nearbyX, 'leash', () => {
-          this._setCompPose('playbow', this.compX > 50);
-          this._say(pick([
-            'Cầm sẵn dây dắt rồi nè, đọc xong đi công viên nhaaa! 🌳',
-            'Chị Khuê ơiii bao giờ mới tới giờ đi công viên dọ?',
-            'Đi công viên chạy 3 vòng rồi về ăn pate nha!',
-          ]), 4000);
+        this._walkCompTo(sameSide, true, () => {
+          c.withLeash = true;
+          c.pose = 'playbow';
+          c.targetYaw = this.compX < 0.5 ? 0.22 : -0.22;
+          this._say(
+            pick([
+              'Ngậm sẵn dây dắt rồi nè, đọc xong đi công viên nhaaa! 🌳',
+              'Chị Khuê ơiii bao giờ mới tới giờ đi công viên dọ?',
+              'Đi công viên chạy 3 vòng rồi về ăn pate nha!',
+            ]),
+            4000
+          );
+          this._after(3800, () => {
+            if (this.companion === c) c.withLeash = false;
+          });
           this._scheduleNextAntic(rand(5800, 7400));
         });
       } else if (act === 'belly_roll') {
-        this._setCompPose('belly', false);
-        this._say(pick([
-          'Lăn ra ngửa bụng hóng gió xíu nha hihi',
-          'Click vô bụng nựng Kakao miếng điii!',
-          'Êm quá nằm nghe anh Quân tâm sự tiếp nè...',
-        ]), 3900);
+        c.pose = 'belly';
+        c.targetYaw = 0;
+        this._say(
+          pick([
+            'Lăn đùng ngửa bụng hồng hóng gió xíu nha hihi',
+            'Click vô người nựng Kakao miếng điii!',
+            'Êm quá nằm nghe anh Quân tâm sự tiếp nè...',
+          ]),
+          3900
+        );
         this._scheduleNextAntic(rand(5600, 7000));
       } else if (act === 'chase_butterfly') {
-        const bf = document.createElement('span');
-        bf.className = 'k-butterfly';
-        bf.textContent = '🦋';
-        this.companion.wrap.appendChild(bf);
+        c.withButterfly = true;
         this._say('Á bướm vàng kìaaa bắt lấy nó!! 🦋', 3000);
-        this._moveCompTo(destSideX, 'trot', () => {
-          bf.remove();
-          this._setCompPose('playbow', this.compX > 50);
-          popHearts(this.layer, this.compX, 86, 3);
+        this._walkCompTo(otherSide, false, () => {
+          c.pose = 'playbow';
+          c.targetYaw = this.compX < 0.5 ? 0.24 : -0.24;
+          this._popHearts(this.compX, 0.82, 3);
           this._scheduleNextAntic(rand(5400, 6800));
         });
       } else {
-        this._setCompPose('sit', this.compX > 50);
+        c.pose = 'sit';
+        c.targetYaw = this.compX < 0.5 ? 0.25 : -0.25;
         const remarks =
           this.pageKind === 'rooms'
             ? [
-                'Mốt đi villa nhớ chừa chỗ cho Kakao chạy sân vườn nha!',
-                'Phòng nào có bãi cỏ như công viên là Kakao chấm 10 điểm!',
+                'Ở nhà ngoan chờ anh chị đi chơi về thưởng súp thưởng nè!',
+                'Chỗ nào có bãi cỏ rộng như công viên là Kakao mê nhấttt!',
               ]
             : this.pageKind === 'finale'
               ? [
