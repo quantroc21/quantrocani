@@ -17,11 +17,27 @@ window.SHOW = {
 
   /* ---- PRELUDE: thông báo trượt ra ở góc màn hình ---- */
   notifications: [
-    { title: 'Khuê ơi', body: 'Khoan đã... đừng bấm gì vội nha.' },
-    { title: 'Tới giờ rồi đó', body: 'Sẵn sàng chưa... 3... 2... 1...' },
+    { title: 'Khuê ơi', body: 'Hình như có ai đó vừa lẻn vào máy tính của em kìa...' },
+    { title: 'Gâu gâu!! 🐾', body: 'Khoan bấm gì nha, ngồi im cho Kakao mượn máy xíu!' },
   ],
 
-  /* ---- PRELUDE: 5 cửa sổ chữ bùng nổ theo nhịp pháo hoa trên desktop ---- */
+  /* ---- PRELUDE MÀN 1: Mascot Kakao chiếm quyền màn hình dễ thương ---- */
+  kakaoIntro: {
+    photo: 'assets/real_photos/kakao_sleep.jpg',
+    step1: 'Tạm khóa chuột để chị Khuê ngồi im xem nè',
+    step2: 'Đang đánh hơi kho ảnh kỷ niệm 4 năm của hai anh chị',
+    step3: 'Nhiệm vụ bí mật anh Quân giao: Sẵn sàng khai hỏa!',
+    done: 'Nhường sân khấu cho anh Quân đâyyy! Gâu gâu! ❤️',
+    stamps: [
+      { text: 'Gâu! Đừng tắt máy nha 🐾', x: 0.20, y: 0.18, rot: -5 },
+      { text: 'Kakao canh cửa rồi!',       x: 0.80, y: 0.20, rot:  4 },
+      { text: 'Có bất ngờ to phía sau nè', x: 0.19, y: 0.81, rot:  3.5 },
+      { text: 'Kỷ niệm 4 năm đó nha ❤️',   x: 0.81, y: 0.81, rot: -3.5 },
+    ],
+  },
+
+  /* ---- PRELUDE MÀN 2: 5 cửa sổ chữ bùng nổ + thời gian giữ lại để ngắm ---- */
+  wordHoldSec: 6.4,
   wordBursts: [
     { text: 'CHÚC',                     tone: 'gold',         bg: 'assets/real_photos/up_1.jpg',     rot: -4.0, x: 0.21, y: 0.23, w: 320, h: 175, fx: 'peony',       pal: 'gold' },
     { text: 'MỪNG',                     tone: 'rose',         bg: 'assets/real_photos/up_4.jpg',     rot:  3.5, x: 0.78, y: 0.23, w: 340, h: 175, fx: 'chrys',       pal: 'rose' },

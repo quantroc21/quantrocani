@@ -230,6 +230,66 @@
         return;
       }
 
+      if (kind === 'kakaoPop') {
+        // Bouncy warm marimba chord + cute two-note puppy chirp ("arf-arf!")
+        [523.25, 659.25, 783.99].forEach((hz, k) => {
+          const o = c.createOscillator(), g = c.createGain();
+          o.type = 'triangle';
+          o.frequency.setValueAtTime(hz, t + k * 0.045);
+          g.gain.setValueAtTime(0.0001, t + k * 0.045);
+          g.gain.linearRampToValueAtTime(0.16, t + k * 0.045 + 0.015);
+          g.gain.exponentialRampToValueAtTime(0.0005, t + k * 0.045 + 0.42);
+          o.connect(g).connect(out);
+          o.start(t + k * 0.045); o.stop(t + k * 0.045 + 0.45);
+        });
+        [0.18, 0.34].forEach((off, idx) => {
+          const o = c.createOscillator(), bp = c.createBiquadFilter(), g = c.createGain();
+          o.type = 'sawtooth';
+          const base = idx === 0 ? 410 : 460;
+          o.frequency.setValueAtTime(base, t + off);
+          o.frequency.exponentialRampToValueAtTime(base * 1.65, t + off + 0.055);
+          o.frequency.exponentialRampToValueAtTime(base * 0.92, t + off + 0.11);
+          bp.type = 'bandpass'; bp.frequency.value = 1150; bp.Q.value = 2.4;
+          g.gain.setValueAtTime(0.0001, t + off);
+          g.gain.linearRampToValueAtTime(0.18, t + off + 0.018);
+          g.gain.exponentialRampToValueAtTime(0.0006, t + off + 0.12);
+          o.connect(bp).connect(g).connect(out);
+          o.start(t + off); o.stop(t + off + 0.13);
+        });
+        return;
+      }
+
+      if (kind === 'pawTap') {
+        // Cute wooden kalimba / paw-pad boop
+        const notes = [587.33, 659.25, 783.99, 880, 987.77, 1046.5];
+        const f = notes[step % notes.length];
+        const o = c.createOscillator(), g = c.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(f * 0.85, t);
+        o.frequency.exponentialRampToValueAtTime(f, t + 0.035);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.linearRampToValueAtTime(0.17, t + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0005, t + 0.28);
+        o.connect(g).connect(out);
+        o.start(t); o.stop(t + 0.3);
+        return;
+      }
+
+      if (kind === 'kakaoDone') {
+        // Cheerful ascending bell sparkle when Kakao finishes hacking
+        [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((hz, k) => {
+          const o = c.createOscillator(), g = c.createGain();
+          o.type = k % 2 === 0 ? 'sine' : 'triangle';
+          o.frequency.setValueAtTime(hz, t + k * 0.055);
+          g.gain.setValueAtTime(0.0001, t + k * 0.055);
+          g.gain.linearRampToValueAtTime(0.15, t + k * 0.055 + 0.012);
+          g.gain.exponentialRampToValueAtTime(0.0004, t + k * 0.055 + 0.65);
+          o.connect(g).connect(out);
+          o.start(t + k * 0.055); o.stop(t + k * 0.055 + 0.7);
+        });
+        return;
+      }
+
       if (kind === 'keyDrop') {
         // Warm brass key clink + ascending chime
         const notes = [440, 554.37, 659.25, 880];

@@ -163,6 +163,7 @@
   // Pre-decode all photo assets in background so page transitions paint with 0ms image decode hitch
   (function preloadImages() {
     const urls = new Set();
+    if (SHOW.kakaoIntro && SHOW.kakaoIntro.photo) urls.add(SHOW.kakaoIntro.photo);
     (SHOW.wordBursts || []).forEach((w) => w.bg && urls.add(w.bg));
     (SHOW.ring || []).forEach((u) => urls.add(u));
     SHOW.pages.forEach((pg) => {
@@ -270,16 +271,79 @@
         0.86, 0.19, 360, 86
       );
     });
-    after(3.05, () => {
+    after(2.95, () => {
       actWin('n0', 'out');
       actWin('n1', 'out');
-      sendFx({ t: 'flash', x: 0.5, y: 0.5, r: 280, life: 0.45, color: '#fff3dc' });
     });
 
+    /* ---- Act 1: Kakao Mascot Desktop Takeover ---- */
+    let curT = 3.2;
+    const kk = SHOW.kakaoIntro;
+    if (kk) {
+      after(curT, () => {
+        sendFx({ t: 'sfx', kind: 'kakaoPop', x: 0.5 });
+        sendFx({ t: 'flash', x: 0.5, y: 0.5, r: 260, life: 0.45, color: '#fff3dc' });
+        sendFx({ t: 'burst', x: 0.5, y: 0.34, type: 'glitter', palette: 'gold', size: 0.85 });
+        const q = new URLSearchParams({
+          id: 'kakao',
+          mode: 'main',
+          photo: kk.photo || '',
+          s1: kk.step1 || '',
+          s2: kk.step2 || '',
+          s3: kk.step3 || '',
+          done: kk.done || '',
+        });
+        spawnWin('kakao', `kakao.html?${q.toString()}`, 0.5, 0.5, 650, 420);
+      });
+
+      const stamps = kk.stamps || [];
+      stamps.forEach((st, idx) => {
+        after(curT + 0.95 + idx * 0.95, () => {
+          sendFx({ t: 'sfx', kind: 'pawTap', x: st.x, step: idx });
+          sendFx({ t: 'burst', x: st.x, y: st.y, type: idx % 2 === 0 ? 'glitter' : 'heart', palette: idx % 2 === 0 ? 'gold' : 'rose', size: 0.65 });
+          const sq = new URLSearchParams({
+            id: 'kp' + idx,
+            mode: 'stamp',
+            text: st.text,
+            rot: String(st.rot || 0),
+          });
+          spawnWin('kp' + idx, `kakao.html?${sq.toString()}`, st.x, st.y, 350, 96);
+        });
+      });
+
+      after(curT + 1.15, () => {
+        sendFx({ t: 'sfx', kind: 'pawTap', x: 0.5, step: 1 });
+        actWin('kakao', 'step1');
+      });
+      after(curT + 2.45, () => {
+        sendFx({ t: 'sfx', kind: 'pawTap', x: 0.5, step: 3 });
+        actWin('kakao', 'step2');
+      });
+      after(curT + 3.75, () => {
+        sendFx({ t: 'sfx', kind: 'pawTap', x: 0.5, step: 5 });
+        actWin('kakao', 'step3');
+      });
+      after(curT + 4.95, () => {
+        sendFx({ t: 'sfx', kind: 'kakaoDone', x: 0.5 });
+        sendFx({ t: 'burst', x: 0.5, y: 0.24, type: 'doubleHeart', palette: 'rose', size: 1.1 });
+        actWin('kakao', 'done');
+      });
+
+      after(curT + 6.95, () => {
+        actWin('kakao', 'out');
+        stamps.forEach((_, idx) => actWin('kp' + idx, 'out'));
+        sendFx({ t: 'flash', x: 0.5, y: 0.5, r: 300, life: 0.45, color: '#fff3dc' });
+      });
+
+      curT += 7.65;
+    } else {
+      curT = 3.25;
+    }
+
+    /* ---- Act 2: 5 Grand Celebration Cards (held longer so she can savor them) ---- */
     const words = SHOW.wordBursts || [];
-    const gaps = [0.85, 0.76, 0.68, 0.60];
-    const flyDur = 0.85;
-    let curT = 3.25;
+    const gaps = [1.02, 0.94, 0.88, 0.84];
+    const flyDur = 0.88;
 
     words.forEach((wb, i) => {
       const tLaunch = curT;
@@ -312,11 +376,19 @@
 
     const tAfterWords = curT + flyDur + 0.35;
     after(tAfterWords, () => {
-      sendFx({ t: 'sweep', count: 7, dir: 1, type: 'brocade', palette: 'gold', y: 0.26, dur: 0.8 });
+      sendFx({ t: 'sweep', count: 7, dir: 1, type: 'brocade', palette: 'gold', y: 0.26, dur: 0.85 });
       sendFx({ t: 'launch', x: 0.5, y: 0.30, type: 'doubleHeart', palette: 'rose', size: 1.4, dur: 0.9, delay: 0.25 });
     });
 
-    const tCharge = tAfterWords + 2.1;
+    // Second celebratory wave while all 5 cards stay glowing on screen
+    const holdSec = Number(SHOW.wordHoldSec) || 6.2;
+    after(tAfterWords + Math.min(2.8, holdSec * 0.45), () => {
+      sendFx({ t: 'salvo', count: 5, type: 'willow', palette: 'gold', y: 0.25, spread: 0.78, dur: 0.95 });
+      sendFx({ t: 'launch', x: 0.32, y: 0.28, type: 'heart', palette: 'rose', size: 1.25, dur: 0.85, delay: 0.2 });
+      sendFx({ t: 'launch', x: 0.68, y: 0.28, type: 'heart', palette: 'rose', size: 1.25, dur: 0.85, delay: 0.35 });
+    });
+
+    const tCharge = tAfterWords + holdSec;
     after(tCharge, () => {
       sendFx({ t: 'sfx', kind: 'charge' });
       words.forEach((_, i) => actWin('w' + i, 'charge'));
