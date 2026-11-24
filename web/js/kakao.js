@@ -1,28 +1,25 @@
 /* =====================================================================
-   KAKAO HYBRID CEL-ANIMATED + MULTI-PART PUPPET ENGINE
-   Kết hợp cả 2 thế mạnh:
-   1. Nét vẽ minh họa chân thực 100% đúng Kakao ngoài đời (không vòng cổ, đầu vàng cát,
-      chấm trắng trán, mõm trắng thon, 1 đốm lưng vàng, chân trắng thon, đuôi trắng dài)
-   2. Chuyển động hoạt hình thật (KHÔNG nhún cả tấm ảnh tĩnh!):
-      - Chạy/đi bộ: 4 frame cel-animation bước chân thật (trot_0..trot_3 @ 11fps)
-        + dây dắt đỏ (leash_prop.png) đung đưa vật lý ở miệng khi đòi đi công viên!
-      - Ngồi (sit): Thân ngồi vững trên sàn, đuôi vẫy phía sau (sit_tail), đầu nghiêng
-        qua lại độc lập (sit_head) & mắt chớp tự nhiên (sit_head_blink)!
-      - Nằm ngửa (belly): Đuôi vẫy tít (belly_tail) tách rời khỏi thân lăn bụng!
+   KAKAO 60/120-FPS MULTI-BONE SKELETAL PUPPET ENGINE
+   - Toàn bộ chuyển động chạy bằng khớp xương 2D mượt ở 60fps / 120fps ProMotion GPU:
+     1. Chạy / Tha dây dắt (trot & leash): 7 khớp độc lập (đuôi vẫy + 2 chân xa + thân nhún
+        + 2 chân gần sải chéo đối pha + đầu gật gù chớp mắt + dây dắt đỏ đung đưa ở miệng)
+     2. Ngồi (sit): Thân ngồi vững trên sàn + đuôi vẫy phía sau + đầu nghiêng qua lại + mắt chớp
+     3. Nằm ngửa (belly): Đuôi vẫy tít tách rời khỏi thân lăn bụng hồng
+     4. Nhảy bật (jump): Tung người lên không trung vui sướng
    ===================================================================== */
 (function () {
   const rand = (a, b) => a + Math.random() * (b - a);
   const pick = (arr) => arr[(Math.random() * arr.length) | 0];
 
-  const TROT_FRAMES = [
-    'assets/kakao/trot_0.png',
-    'assets/kakao/trot_1.png',
-    'assets/kakao/trot_2.png',
-    'assets/kakao/trot_3.png',
-  ];
-
   const ASSETS = [
-    ...TROT_FRAMES,
+    'assets/kakao/run_tail.png',
+    'assets/kakao/run_leg_br.png',
+    'assets/kakao/run_leg_fr.png',
+    'assets/kakao/run_torso.png',
+    'assets/kakao/run_leg_bl.png',
+    'assets/kakao/run_leg_fl.png',
+    'assets/kakao/run_head.png',
+    'assets/kakao/run_head_blink.png',
     'assets/kakao/leash_prop.png',
     'assets/kakao/jump.png',
     'assets/kakao/sit_tail.png',
@@ -33,12 +30,20 @@
     'assets/kakao/belly_body.png',
   ];
 
-  // Pre-decode toàn bộ frame & bộ phận puppet ngay khi mở để chuyển mượt 0ms
+  // Pre-decode toàn bộ bộ phận xương ngay khi khởi động để hiện mượt 0ms
   ASSETS.forEach((src) => {
     const im = new Image();
     im.src = src;
     if (im.decode) im.decode().catch(() => {});
   });
+
+  function makeLayerImg(src, cls) {
+    const im = new Image();
+    im.src = src;
+    im.className = 'k-layer ' + cls;
+    im.draggable = false;
+    return im;
+  }
 
   function createPuppetDOM({ pose = 'sit', size = 152, faceRight = true, text = '', photo = '', hero = false, companion = false } = {}) {
     const wrap = document.createElement('div');
@@ -53,68 +58,63 @@
     flipWrap.className = 'k-flip';
     wrap.appendChild(flipWrap);
 
-    // Stage Rig Container (chứa 3 chế độ bộ phận thật: trot-cel, sit-puppet, belly-puppet, jump)
     const rig = document.createElement('div');
     rig.className = 'k-rig';
+    // Đặt lệch pha ngẫu nhiên nhẹ để đàn 5 bé Kakao không bước rập khuôn như robot!
+    rig.style.setProperty('--phase', (-rand(0, 1.2)).toFixed(2) + 's');
     flipWrap.appendChild(rig);
 
-    // 1) TROT CEL-ANIMATION RIG (4 frame chân bước thật + dây dắt đỏ đung đưa ở miệng)
+    // 1) 7-BONE 60/120FPS TROT & LEASH RIG
     const trotGroup = document.createElement('div');
     trotGroup.className = 'k-mode k-mode-trot';
-    const trotFramesEls = TROT_FRAMES.map((src, idx) => {
-      const im = new Image();
-      im.src = src;
-      im.className = 'k-trot-frame' + (idx === 0 ? ' is-on' : '');
-      im.draggable = false;
-      trotGroup.appendChild(im);
-      return im;
-    });
+    const runTail  = makeLayerImg('assets/kakao/run_tail.png', 'k-run-tail');
+    const runLegBR = makeLayerImg('assets/kakao/run_leg_br.png', 'k-run-leg-br');
+    const runLegFR = makeLayerImg('assets/kakao/run_leg_fr.png', 'k-run-leg-fr');
+    const runTorso = makeLayerImg('assets/kakao/run_torso.png', 'k-run-torso');
+    const runLegBL = makeLayerImg('assets/kakao/run_leg_bl.png', 'k-run-leg-bl');
+    const runLegFL = makeLayerImg('assets/kakao/run_leg_fl.png', 'k-run-leg-fl');
+
+    const runHeadWrap = document.createElement('div');
+    runHeadWrap.className = 'k-layer k-run-head-wrap';
+    const runHeadOpen  = makeLayerImg('assets/kakao/run_head.png', 'k-head-open');
+    const runHeadBlink = makeLayerImg('assets/kakao/run_head_blink.png', 'k-head-blink');
     const leashProp = new Image();
     leashProp.src = 'assets/kakao/leash_prop.png';
     leashProp.className = 'k-leash-prop';
     leashProp.draggable = false;
-    trotGroup.appendChild(leashProp);
+    runHeadWrap.append(runHeadOpen, runHeadBlink, leashProp);
+
+    trotGroup.append(runTail, runLegBR, runLegFR, runTorso, runLegBL, runLegFL, runHeadWrap);
     rig.appendChild(trotGroup);
 
-    // 2) SIT MULTI-PART PUPPET RIG (đuôi vẫy + thân tĩnh + đầu nghiêng + mắt chớp!)
+    // 2) MULTI-PART SIT PUPPET RIG (đuôi vẫy + thân tĩnh + đầu nghiêng + mắt chớp!)
     const sitGroup = document.createElement('div');
     sitGroup.className = 'k-mode k-mode-sit';
-    const sitTail = new Image();
-    sitTail.src = 'assets/kakao/sit_tail.png';
-    sitTail.className = 'k-layer k-sit-tail';
-    const sitBody = new Image();
-    sitBody.src = 'assets/kakao/sit_body.png';
-    sitBody.className = 'k-layer k-sit-body';
+    const sitTail = makeLayerImg('assets/kakao/sit_tail.png', 'k-sit-tail');
+    const sitBody = makeLayerImg('assets/kakao/sit_body.png', 'k-sit-body');
     const sitHeadWrap = document.createElement('div');
     sitHeadWrap.className = 'k-layer k-sit-head-wrap';
-    const sitHeadOpen = new Image();
-    sitHeadOpen.src = 'assets/kakao/sit_head.png';
-    sitHeadOpen.className = 'k-layer k-head-open';
-    const sitHeadBlink = new Image();
-    sitHeadBlink.src = 'assets/kakao/sit_head_blink.png';
-    sitHeadBlink.className = 'k-layer k-head-blink';
+    const sitHeadOpen  = makeLayerImg('assets/kakao/sit_head.png', 'k-head-open');
+    const sitHeadBlink = makeLayerImg('assets/kakao/sit_head_blink.png', 'k-head-blink');
     sitHeadWrap.append(sitHeadOpen, sitHeadBlink);
     sitGroup.append(sitTail, sitBody, sitHeadWrap);
     rig.appendChild(sitGroup);
 
-    // 3) BELLY MULTI-PART PUPPET RIG (đuôi vẫy riêng + thân lăn bụng ngửa!)
+    // 3) MULTI-PART BELLY PUPPET RIG
     const bellyGroup = document.createElement('div');
     bellyGroup.className = 'k-mode k-mode-belly';
-    const bellyTail = new Image();
-    bellyTail.src = 'assets/kakao/belly_tail.png';
-    bellyTail.className = 'k-layer k-belly-tail';
-    const bellyBody = new Image();
-    bellyBody.src = 'assets/kakao/belly_body.png';
-    bellyBody.className = 'k-layer k-belly-body';
+    const bellyTail = makeLayerImg('assets/kakao/belly_tail.png', 'k-belly-tail');
+    const bellyBody = makeLayerImg('assets/kakao/belly_body.png', 'k-belly-body');
     bellyGroup.append(bellyTail, bellyBody);
     rig.appendChild(bellyGroup);
 
-    // 4) JUMP / LEAP POSE (phóng vọt vui sướng trên không)
+    // 4) MID-AIR JUMP POSE
     const jumpGroup = document.createElement('div');
     jumpGroup.className = 'k-mode k-mode-jump';
     const jumpImg = new Image();
     jumpImg.src = 'assets/kakao/jump.png';
     jumpImg.className = 'k-jump-img';
+    jumpImg.draggable = false;
     jumpGroup.appendChild(jumpImg);
     rig.appendChild(jumpGroup);
 
@@ -143,7 +143,7 @@
       shadow,
       bubble,
       trotGroup,
-      trotFramesEls,
+      runHeadWrap,
       leashProp,
       sitGroup,
       sitHeadWrap,
@@ -151,9 +151,7 @@
       jumpGroup,
       pose: '',
       faceRight,
-      frameIdx: (Math.random() * 4) | 0,
-      frameAccum: 0,
-      blinkTimer: rand(1.4, 3.2),
+      blinkTimer: rand(1.4, 3.4),
       blinking: false,
       happyHold: 0,
     };
@@ -163,11 +161,8 @@
   }
 
   function shouldMirror(pose, faceRight) {
-    // trot_0..3 gốc đều hướng PHẢI (+X)
     if (pose === 'trot' || pose === 'leash') return !faceRight;
-    // jump.png gốc hướng TRÁI (-X)
     if (pose === 'jump') return faceRight;
-    // sit gốc hơi nghiêng phải
     if (pose === 'sit') return !faceRight;
     return false;
   }
@@ -184,20 +179,18 @@
     actor.bellyGroup.style.display = pose === 'belly' ? 'block' : 'none';
     actor.jumpGroup.style.display = pose === 'jump' ? 'block' : 'none';
 
-    // Điều chỉnh tỷ lệ khung chiều cao tự nhiên cho từng tư thế
     if (pose === 'sit') {
       actor.rig.style.aspectRatio = '286 / 440';
     } else if (pose === 'belly') {
       actor.rig.style.aspectRatio = '440 / 381';
-    } else if (pose === 'jump') {
-      actor.rig.style.aspectRatio = '440 / 400';
     } else {
       actor.rig.style.aspectRatio = '440 / 400';
     }
   }
 
   /* =====================================================================
-     CONTROLLER (chạy vòng lặp nhẹ 60fps lật 4 frame bước chạy & chớp mắt tự nhiên)
+     CONTROLLER (Toàn bộ khớp chân/đuôi/đầu chạy bằng CSS GPU @ 60/120fps;
+     JS chỉ điều phối chớp mắt tự nhiên & kịch bản chạy nhảy!)
      ===================================================================== */
   class KakaoPackController {
     constructor(layer) {
@@ -238,34 +231,23 @@
 
       for (let i = 0; i < this.actors.length; i++) {
         const a = this.actors[i];
-
-        // 1. Lật 4 frame bước chân chạy thật (11.5 fps -> mỗi ~87ms đổi tư thế 4 chân!)
-        if (a.pose === 'trot' || a.pose === 'leash') {
-          a.frameAccum += dt;
-          if (a.frameAccum >= 0.086) {
-            a.frameAccum %= 0.086;
-            a.trotFramesEls[a.frameIdx].classList.remove('is-on');
-            a.frameIdx = (a.frameIdx + 1) % 4;
-            a.trotFramesEls[a.frameIdx].classList.add('is-on');
-          }
-        }
-
-        // 2. Chớp mắt tự nhiên ở tư thế ngồi (hoặc cười tít mắt '^ ^' khi được nựng!)
-        if (a.pose === 'sit') {
-          if (a.happyHold > 0) {
-            a.happyHold -= dt;
+        // Chớp mắt tự nhiên cho cả lúc chạy lẫn lúc ngồi!
+        if (a.happyHold > 0) {
+          a.happyHold -= dt;
+          a.sitHeadWrap.classList.add('is-blinking');
+          a.runHeadWrap.classList.add('is-blinking');
+        } else {
+          a.blinkTimer -= dt;
+          if (!a.blinking && a.blinkTimer <= 0) {
+            a.blinking = true;
+            a.blinkTimer = 0.16;
             a.sitHeadWrap.classList.add('is-blinking');
-          } else {
-            a.blinkTimer -= dt;
-            if (!a.blinking && a.blinkTimer <= 0) {
-              a.blinking = true;
-              a.blinkTimer = 0.16; // nhắm mắt 160ms
-              a.sitHeadWrap.classList.add('is-blinking');
-            } else if (a.blinking && a.blinkTimer <= 0) {
-              a.blinking = false;
-              a.blinkTimer = rand(2.3, 4.2);
-              a.sitHeadWrap.classList.remove('is-blinking');
-            }
+            a.runHeadWrap.classList.add('is-blinking');
+          } else if (a.blinking && a.blinkTimer <= 0) {
+            a.blinking = false;
+            a.blinkTimer = rand(2.2, 4.0);
+            a.sitHeadWrap.classList.remove('is-blinking');
+            a.runHeadWrap.classList.remove('is-blinking');
           }
         }
       }
@@ -319,7 +301,7 @@
       setTimeout(() => p.remove(), 1600);
     }
 
-    /* ---------------- 1. PRELUDE: ĐÀN 5 BÉ KAKAO BƯỚC CHẠY THẬT & ĐÒI ĐI CÔNG VIÊN ---------------- */
+    /* ---------------- 1. PRELUDE: ĐÀN 5 BÉ KAKAO SẢI CHÂN 60/120FPS MƯỢT NHƯ LỤA ---------------- */
     runPrelude(cfg = {}, sendFx = () => {}) {
       this.clearAll();
       this.sendFx = sendFx;
@@ -327,7 +309,7 @@
 
       const lines = cfg.preludeLines || {};
 
-      // Bé #1: 4 chân bước lạch bạch từ trái vào, miệng ngậm dây dắt đỏ đung đưa, tới nơi ngồi ngoáy đuôi nghiêng đầu!
+      // Bé #1: Sải 4 chân 120fps từ trái vào, miệng ngậm dây dắt đỏ đung đưa!
       this._after(0, () => {
         sendFx({ t: 'sfx', kind: 'kakaoPop', x: 0.24 });
         const a1 = this._addActor({
@@ -341,10 +323,10 @@
         this.preludeActors.push({ actor: a1, exitX: '-16%', exitY: '64%', exitRight: false });
 
         requestAnimationFrame(() => {
-          a1.wrap.style.transition = 'left 1.25s linear, top 0.55s ease, opacity 0.4s ease';
+          a1.wrap.style.transition = 'left 1.35s cubic-bezier(.22, .61, .36, 1), top 0.55s ease, opacity 0.4s ease';
           a1.wrap.style.left = '22%';
         });
-        [240, 520, 800, 1060].forEach((ms, i) => this._after(ms, () => this._dropPaw(4 + i * 5, 72)));
+        [240, 520, 800, 1080].forEach((ms, i) => this._after(ms, () => this._dropPaw(4 + i * 5, 72)));
       });
 
       // Bé #2: Thò đầu nghiêng từ mép phải màn hình (đầu nghiêng + chớp mắt + vẫy đuôi!)
@@ -369,7 +351,7 @@
         });
       });
 
-      // Bé #3: Lăn ngửa bụng ở góc phải dưới (đuôi vẫy tít tách rời khỏi thân + ảnh thật Kakao!)
+      // Bé #3: Lăn ngửa bụng ở góc phải dưới (đuôi vẫy 120fps tách rời khỏi thân!)
       this._after(1700, () => {
         sendFx({ t: 'sfx', kind: 'pawTap', x: 0.74, step: 2 });
         sendFx({ t: 'burst', x: 0.74, y: 0.73, type: 'glitter', palette: 'gold', size: 0.65 });
@@ -391,12 +373,12 @@
         });
       });
 
-      // Bé #4: 4 chân chạy nước đại thật (trot_0..3) băng ngang màn hình trên rượt bướm vàng!
+      // Bé #4: 4 chân sải mượt 120fps băng ngang màn hình trên rượt bướm vàng!
       this._after(2550, () => {
         sendFx({ t: 'sfx', kind: 'pawTap', x: 0.35, step: 3 });
         const a4 = this._addActor({
           pose: 'trot',
-          size: 152,
+          size: 154,
           faceRight: false,
           text: lines.zoom || 'Đi công viên bắt bướm thôiii gâu gâu!! 🦋',
         });
@@ -410,11 +392,11 @@
         this.preludeActors.push({ actor: a4, exitX: '-16%', exitY: '22%', exitRight: false });
 
         requestAnimationFrame(() => {
-          a4.wrap.style.transition = 'left 1.65s linear, opacity 0.4s ease';
+          a4.wrap.style.transition = 'left 1.75s linear, opacity 0.4s ease';
           a4.wrap.style.left = '26%';
         });
         [280, 620, 960, 1300].forEach((ms, i) => this._after(ms, () => this._dropPaw(86 - i * 15, 30)));
-        this._after(1680, () => {
+        this._after(1780, () => {
           setActorPose(a4, 'sit', true);
           a4.wrap.style.width = '122px';
         });
@@ -441,7 +423,6 @@
           a5.wrap.style.transform = 'translate(-50%, -50%) scale(1)';
         });
 
-        // Bật nhảy lên ăn mừng + cười tít mắt '^ ^' & bắn tim!
         this._after(1550, () => {
           sendFx({ t: 'sfx', kind: 'kakaoDone', x: 0.5 });
           sendFx({ t: 'burst', x: 0.5, y: 0.28, type: 'doubleHeart', palette: 'rose', size: 1.15 });
@@ -471,17 +452,17 @@
           actor.wrap.style.width = '156px';
           setActorPose(actor, 'trot', exitRight);
         }
-        actor.wrap.style.transition = 'left 0.65s linear, top 0.65s ease, opacity 0.48s ease 0.15s';
+        actor.wrap.style.transition = 'left 0.68s linear, top 0.68s ease, opacity 0.48s ease 0.16s';
         actor.wrap.style.left = exitX;
         actor.wrap.style.top = exitY;
         actor.wrap.style.opacity = '0';
       });
-      this._after(700, () => {
+      this._after(720, () => {
         if (!this.companion) this.clearAll();
       });
     }
 
-    /* ---------------- 2. TRONG LÚC ĐỌC THƯ: BÉ KAKAO BƯỚC CHẠY THẬT & NGỒI VẪY ĐUÔI ---------------- */
+    /* ---------------- 2. TRONG LÚC ĐỌC THƯ: BÉ KAKAO SẢI CHÂN 60/120FPS & NGỒI VẪY ĐUÔI ---------------- */
     startStage(cfg = {}, sendFx = () => {}) {
       this.clearAll();
       this.sendFx = sendFx;
@@ -491,7 +472,7 @@
 
       const comp = this._addActor({
         pose: 'leash',
-        size: 124,
+        size: 126,
         faceRight: true,
         companion: true,
         text: 'Đọc thư thong thả nha, xong dắt Kakao đi công viên nhaaa! 🌳🐾',
@@ -507,11 +488,11 @@
       });
 
       requestAnimationFrame(() => {
-        comp.wrap.style.transition = 'left 1.75s linear';
+        comp.wrap.style.transition = 'left 1.8s linear';
         comp.wrap.style.left = this.compX + '%';
       });
 
-      this._after(1780, () => {
+      this._after(1820, () => {
         if (!this.companion) return;
         this._setCompIdleSit(true);
       });
@@ -578,7 +559,7 @@
         });
       } else if (page && page.type === 'rooms') {
         this.pageKind = 'rooms';
-        c.wrap.style.width = '124px';
+        c.wrap.style.width = '126px';
         setActorPose(c, 'leash', this.compX < 50);
         this._popHearts(this.compX, 84, 3);
         this._say('Anh chị đi vi vu về nhớ dắt Kakao bù 3 vòng công viên nha!! 🌳🐾', 4300);
@@ -596,9 +577,9 @@
       const dx = targetX - this.compX;
       const faceRight = dx >= 0;
       const dist = Math.abs(dx);
-      const durSec = Math.max(1.15, Math.min(3.1, dist * 0.038));
+      const durSec = Math.max(1.2, Math.min(3.2, dist * 0.038));
 
-      c.wrap.style.width = '124px';
+      c.wrap.style.width = '126px';
       setActorPose(c, walkPose, faceRight);
       c.wrap.style.transition = `left ${durSec.toFixed(2)}s linear`;
       c.wrap.style.left = targetX + '%';
