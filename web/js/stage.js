@@ -154,6 +154,7 @@
   /* ---------------- 3D Particle Engine + Atmosphere + Async Warmup ---------------- */
   const atmo = new Atmosphere(document.getElementById('atmo'), { dprCap: 1.5 });
   const particles = new Particles(document.getElementById('gl'));
+  const kakaoPack = window.KakaoPack ? new KakaoPack(document.getElementById('kakao-layer')) : null;
   particles.warmup();
 
   let heavyPrepStarted = false;
@@ -258,6 +259,7 @@
     atmo.start();
     particles.start();
     particles.opacity(0.92, 1.4);
+    if (kakaoPack) kakaoPack.startStage(SHOW.kakaoIntro || {}, sendFx);
     const startPage = Math.max(0, Math.min(SHOW.pages.length - 1, parseInt(Host.q('page', '0'), 10) || 0));
     showPage(startPage);
   }
@@ -267,6 +269,7 @@
   function runPrelude() {
     clearTimers();
     clearPageTimers();
+    if (kakaoPack) kakaoPack.clearAll();
     fullLetterMode = false;
     document.body.classList.remove('full-letter', 'finale-mode', 'rooms-mode', 'backdrop-warm');
     btnFull.textContent = 'Xem nguyên bức thư';
@@ -313,66 +316,20 @@
       actWin('n1', 'out');
     });
 
-    /* ---- Act 1: Kakao Mascot Desktop Takeover ---- */
-    let curT = 3.2;
+    /* ---- Act 1: Animated Pack of Kakao Puppies Begging for the Park (No boxy task cards!) ---- */
+    let curT = 3.05;
     const kk = SHOW.kakaoIntro;
-    if (kk) {
+    if (kk && kakaoPack) {
       after(curT, () => {
-        sendFx({ t: 'sfx', kind: 'kakaoPop', x: 0.5 });
-        sendFx({ t: 'flash', x: 0.5, y: 0.5, r: 260, life: 0.45, color: '#fff3dc' });
-        sendFx({ t: 'burst', x: 0.5, y: 0.34, type: 'glitter', palette: 'gold', size: 0.85 });
-        const q = new URLSearchParams({
-          id: 'kakao',
-          mode: 'main',
-          photo: kk.photo || '',
-          s1: kk.step1 || '',
-          s2: kk.step2 || '',
-          s3: kk.step3 || '',
-          done: kk.done || '',
-        });
-        spawnWin('kakao', `kakao.html?${q.toString()}`, 0.5, 0.5, 650, 420);
+        kakaoPack.runPrelude(kk, sendFx);
       });
 
-      const stamps = (kk.stamps || []).slice(0, 2);
-      stamps.forEach((st, idx) => {
-        after(curT + 1.15 + idx * 1.45, () => {
-          sendFx({ t: 'sfx', kind: 'pawTap', x: st.x, step: idx });
-          sendFx({ t: 'burst', x: st.x, y: st.y, type: idx % 2 === 0 ? 'glitter' : 'heart', palette: idx % 2 === 0 ? 'gold' : 'rose', size: 0.65 });
-          const sq = new URLSearchParams({
-            id: 'kp' + idx,
-            mode: 'stamp',
-            text: st.text,
-            rot: String(st.rot || 0),
-          });
-          spawnWin('kp' + idx, `kakao.html?${sq.toString()}`, st.x, st.y, 350, 96);
-        });
+      after(curT + 7.25, () => {
+        kakaoPack.scatterPrelude();
+        sendFx({ t: 'flash', x: 0.5, y: 0.5, r: 280, life: 0.45, color: '#fff3dc' });
       });
 
-      after(curT + 1.15, () => {
-        sendFx({ t: 'sfx', kind: 'pawTap', x: 0.5, step: 1 });
-        actWin('kakao', 'step1');
-      });
-      after(curT + 2.45, () => {
-        sendFx({ t: 'sfx', kind: 'pawTap', x: 0.5, step: 3 });
-        actWin('kakao', 'step2');
-      });
-      after(curT + 3.75, () => {
-        sendFx({ t: 'sfx', kind: 'pawTap', x: 0.5, step: 5 });
-        actWin('kakao', 'step3');
-      });
-      after(curT + 4.95, () => {
-        sendFx({ t: 'sfx', kind: 'kakaoDone', x: 0.5 });
-        sendFx({ t: 'burst', x: 0.5, y: 0.24, type: 'doubleHeart', palette: 'rose', size: 1.1 });
-        actWin('kakao', 'done');
-      });
-
-      after(curT + 6.95, () => {
-        actWin('kakao', 'out');
-        stamps.forEach((_, idx) => actWin('kp' + idx, 'out'));
-        sendFx({ t: 'flash', x: 0.5, y: 0.5, r: 300, life: 0.45, color: '#fff3dc' });
-      });
-
-      curT += 7.65;
+      curT += 7.85;
     } else {
       curT = 3.25;
     }
@@ -511,6 +468,7 @@
 
     currentIndex = index;
     const p = pages[index];
+    if (kakaoPack) kakaoPack.onPageChange(index, p);
     const isLetter = (pg) => !pg.finale && pg.type !== 'rooms';
     const letterPagesCount = pages.filter(isLetter).length;
 

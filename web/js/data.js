@@ -17,23 +17,21 @@ window.SHOW = {
 
   /* ---- PRELUDE: thông báo trượt ra ở góc màn hình ---- */
   notifications: [
-    { title: 'Khuê ơi', body: 'Hình như có ai đó vừa lẻn vào máy tính của em kìa...' },
-    { title: 'Gâu gâu!! 🐾', body: 'Khoan bấm gì nha, ngồi im cho Kakao mượn máy xíu!' },
+    { title: 'Khuê ơi', body: 'Ủa tiếng chân ai chạy lạch bạch vô màn hình của em kìa...' },
+    { title: 'Gâu gâu!! 🐾', body: 'Chị Khuê mở máy mà chưa dẫn Kakao đi công viên hảaa?!' },
   ],
 
-  /* ---- PRELUDE MÀN 1: Mascot Kakao chiếm quyền màn hình dễ thương ---- */
+  /* ---- ĐÀN KAKAO QUẬY MÀN HÌNH ĐẦU SHOW & CHẠY CHƠI TRONG LÚC ĐỌC THƯ ---- */
   kakaoIntro: {
     photo: 'assets/real_photos/kakao_sleep.jpg',
-    step1: 'Tạm khóa chuột để chị Khuê ngồi im xem nè',
-    step2: 'Đang đánh hơi kho ảnh kỷ niệm 4 năm của hai anh chị',
-    step3: 'Nhiệm vụ bí mật anh Quân giao: Sẵn sàng khai hỏa!',
-    done: 'Nhường sân khấu cho anh Quân đâyyy! Gâu gâu! ❤️',
-    stamps: [
-      { text: 'Gâu! Đừng tắt máy nha 🐾', x: 0.20, y: 0.18, rot: -5 },
-      { text: 'Kakao canh cửa rồi!',       x: 0.80, y: 0.20, rot:  4 },
-      { text: 'Có bất ngờ to phía sau nè', x: 0.19, y: 0.81, rot:  3.5 },
-      { text: 'Kỷ niệm 4 năm đó nha ❤️',   x: 0.81, y: 0.81, rot: -3.5 },
-    ],
+    preludeLines: {
+      leash:    'Gâu gâu!! Đàn Kakao chiếm máy rồi, dẫn đi công viên mới trả nha! 🌳🐾',
+      peek:     'Ủa mở máy tính mà hổng dẫn Kakao đi công viên hả chị Khuê?!',
+      belly:    'Nằm lăn ra ăn vạ luôn! Gãi bụng 10 cái mới cho xem tiếp!',
+      zoom:     'Đi công viên bắt bướm thôiii gâu gâu!! 🦋',
+      realize:  'Ủa khoan... hôm nay kỷ niệm 4 năm của anh Quân với chị Khuê hả?!',
+      handover: 'Thôi hôm nay Kakao nhịn đi công viên 1 bữa! Nhường sân khấu cho anh Quân chúc mừng chị Khuê nè ❤️',
+    },
   },
 
   /* ---- PRELUDE MÀN 2: 5 cửa sổ chữ bùng nổ + thời gian giữ lại để ngắm ---- */

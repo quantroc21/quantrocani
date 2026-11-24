@@ -625,6 +625,186 @@ body.stage-on .hud {
 }
 .hud-btn:hover { border-color: var(--gold); color: var(--gold); }
 
+/* ---- KAKAO ANIMATED PACK (PRELUDE) & LIVING COMPANION (STAGE) ---- */
+#kakao-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 27;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.k-actor {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  will-change: left, top, transform, opacity;
+  pointer-events: none;
+}
+
+.k-actor.k-companion {
+  top: auto;
+  transform: translateX(-50%);
+  pointer-events: auto;
+  cursor: pointer;
+}
+.k-actor.k-companion:hover .k-svg {
+  filter: drop-shadow(0 8px 18px rgba(245, 206, 138, 0.45));
+}
+
+.k-body {
+  width: 100%;
+  will-change: transform;
+}
+.k-body.is-flipped {
+  transform: scaleX(-1);
+}
+
+.k-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+  filter: drop-shadow(0 10px 18px rgba(10, 6, 3, 0.45));
+}
+
+/* Smooth GPU limb/tail/head animations */
+.k-bob    { animation: kBob 0.34s ease-in-out infinite alternate; }
+.k-leg-a  { animation: kLegA 0.20s ease-in-out infinite alternate; }
+.k-leg-b  { animation: kLegB 0.20s ease-in-out infinite alternate; }
+.k-tail   { animation: kTail 0.26s ease-in-out infinite alternate; }
+.k-rock   { animation: kRock 0.75s ease-in-out infinite alternate; }
+.k-hop    { animation: kHop 0.42s cubic-bezier(.22, 1, .36, 1) infinite alternate; }
+.k-tilt   { animation: kTilt 1.6s ease-in-out infinite alternate; }
+
+@keyframes kBob  { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+@keyframes kLegA { from { transform: rotate(-22deg); } to { transform: rotate(22deg); } }
+@keyframes kLegB { from { transform: rotate(22deg); } to { transform: rotate(-22deg); } }
+@keyframes kTail { from { transform: rotate(-14deg); } to { transform: rotate(18deg); } }
+@keyframes kRock { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
+@keyframes kHop  { from { transform: translateY(0) scale(1); } to { transform: translateY(-9px) scale(1.03); } }
+@keyframes kTilt { from { transform: rotate(-8deg); } to { transform: rotate(8deg); } }
+
+/* Soft warm handwritten speech cloud (zero tech boxy card!) */
+.k-bubble {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%) scale(0.86);
+  min-width: 190px;
+  max-width: 285px;
+  padding: 9px 14px;
+  border-radius: 18px;
+  background: linear-gradient(160deg, #fffdf8 0%, #f5e8d0 100%);
+  border: 1.5px solid rgba(207, 136, 64, 0.45);
+  box-shadow: 0 10px 24px -6px rgba(12, 7, 4, 0.55);
+  color: #241a13;
+  font-family: var(--hand-body);
+  font-weight: 600;
+  font-size: 13.5px;
+  line-height: 1.35;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease, transform 0.32s cubic-bezier(.18, 1.3, .32, 1);
+  z-index: 5;
+}
+.k-bubble.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+.k-bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 12px;
+  height: 12px;
+  background: #f5e8d0;
+  border-right: 1.5px solid rgba(207, 136, 64, 0.45);
+  border-bottom: 1.5px solid rgba(207, 136, 64, 0.45);
+  transform: translateX(-50%) rotate(45deg);
+}
+.k-actor.k-hero .k-bubble {
+  max-width: 340px;
+  font-size: 14.5px;
+  padding: 11px 16px;
+}
+.k-actor.k-edge-right .k-bubble {
+  left: auto;
+  right: 78%;
+  bottom: 35%;
+  transform: scale(0.86);
+}
+.k-actor.k-edge-right .k-bubble.is-visible {
+  transform: scale(1);
+}
+.k-actor.k-edge-right .k-bubble::after { display: none; }
+
+.k-actor.k-companion .k-bubble {
+  font-size: 12.5px;
+  max-width: 245px;
+  padding: 8px 13px;
+}
+
+/* Real squinting Kakao circular photo sticker next to belly-up puppy */
+.k-photo-badge {
+  position: absolute;
+  right: -18px;
+  bottom: 8px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  padding: 3px;
+  background: #fffdf8;
+  box-shadow: 0 8px 18px rgba(15, 9, 4, 0.42);
+  transform: rotate(10deg);
+}
+.k-photo-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+/* Fluttering butterfly, paw trail & floating hearts */
+.k-butterfly {
+  position: absolute;
+  left: -26px;
+  top: 8px;
+  font-size: 22px;
+  animation: kFlutter 0.35s ease-in-out infinite alternate;
+}
+@keyframes kFlutter {
+  from { transform: translate(0, 0) rotate(-12deg) scale(0.95); }
+  to   { transform: translate(-6px, -10px) rotate(8deg) scale(1.1); }
+}
+
+.k-paw-print {
+  position: absolute;
+  font-size: 15px;
+  opacity: 0.78;
+  transform: translate(-50%, -50%) rotate(-15deg);
+  animation: kPawFade 1.6s ease-out forwards;
+}
+@keyframes kPawFade {
+  0%   { opacity: 0.85; transform: translate(-50%, -50%) scale(0.7); }
+  25%  { opacity: 0.85; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -54%) scale(0.9); }
+}
+
+.k-float-heart {
+  position: absolute;
+  font-size: 17px;
+  pointer-events: none;
+  animation: kHeartUp 1.25s cubic-bezier(.16, 1, .3, 1) forwards;
+}
+@keyframes kHeartUp {
+  0%   { opacity: 0; transform: translate(-50%, 6px) scale(0.5); }
+  20%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -54px) scale(1.2) rotate(10deg); }
+}
+
 @media (max-width: 1100px) {
   #stage {
     padding: 24px 20px 80px;
