@@ -23,6 +23,19 @@ ObjC.registerSubclass({
   methods: {
     'canBecomeKeyWindow': { types: ['bool', []], implementation: function () { return true; } },
     'canBecomeMainWindow': { types: ['bool', []], implementation: function () { return true; } },
+    'keyDown:': {
+      types: ['void', ['id']],
+      implementation: function (ev) {
+        try {
+          if (ev.keyCode === 53) {
+            for (const k of [...satellites.keys()]) closeSatellite(k);
+            app.terminate(null);
+            return;
+          }
+        } catch (_) {}
+        ObjC.super(this).keyDown(ev);
+      },
+    },
   },
 });
 
@@ -186,6 +199,7 @@ ObjC.registerSubclass({
               break;
             case 'showStage':
               if (stageWin) {
+                stageWin.setIgnoresMouseEvents(false);
                 stageWin.makeKeyAndOrderFront(null);
                 app.activateIgnoringOtherApps(true);
               }
@@ -205,9 +219,9 @@ ObjC.registerSubclass({
 
 const hostHandler = $.AnnivHostHandler.alloc.init;
 
-// 1. Stage window (level 998)
+// 1. Stage window (level 998) — click-through during prelude so desktop never locks up
 {
-  const created = makeWindow(scr, 998, false, hostHandler);
+  const created = makeWindow(scr, 998, !SKIP_PRELUDE, hostHandler);
   stageWin = created.win;
   stageWv = created.wv;
   const qp = [];

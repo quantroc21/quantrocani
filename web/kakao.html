@@ -101,16 +101,14 @@
     border-radius: 24px;
     background: linear-gradient(165deg, var(--cream-top) 0%, var(--cream-bot) 100%);
     border: 1.5px solid rgba(255, 250, 240, 0.92);
-    box-shadow:
-      0 24px 48px -12px rgba(10, 6, 4, 0.72),
-      0 0 32px rgba(235, 188, 122, 0.28),
-      inset 0 0 40px rgba(196, 146, 86, 0.14);
+    box-shadow: 0 18px 34px -10px rgba(10, 6, 4, 0.62);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     transform: scale(0.45) translateY(36px);
     opacity: 0;
-    animation: cardIn 0.7s cubic-bezier(.16, 1.24, .3, 1) forwards;
+    will-change: transform, opacity;
+    animation: cardIn 0.65s cubic-bezier(.16, 1.24, .3, 1) forwards;
   }
   body.out .kakao-card {
     animation: cardOut 0.52s cubic-bezier(.7, 0, .84, 0) forwards;
@@ -225,49 +223,32 @@
     display: block;
   }
 
-  /* SVG Kakao Animations */
+  /* SVG Kakao Animations (kept GPU-light for smooth 60fps on 8GB Macs) */
   .kakao-svg {
     width: 198px;
     height: 215px;
     overflow: visible;
-    animation: bobBody 1.8s ease-in-out infinite;
+    will-change: transform;
+    animation: bobBody 1.9s ease-in-out infinite;
   }
   @keyframes bobBody {
     0%, 100% { transform: translateY(0); }
     50%      { transform: translateY(-4px); }
   }
-  .ear-l { transform-origin: 68px 66px; animation: wiggleL 2.2s ease-in-out infinite; }
-  .ear-r { transform-origin: 132px 66px; animation: wiggleR 2.2s ease-in-out 0.25s infinite; }
-  @keyframes wiggleL {
-    0%, 82%, 100% { transform: rotate(0deg); }
-    88%           { transform: rotate(-9deg); }
-    94%           { transform: rotate(4deg); }
-  }
-  @keyframes wiggleR {
-    0%, 78%, 100% { transform: rotate(0deg); }
-    85%           { transform: rotate(10deg); }
-    92%           { transform: rotate(-4deg); }
-  }
-  .tail { transform-origin: 150px 152px; animation: wagTail 0.36s ease-in-out infinite alternate; }
+  .ear-l { transform-origin: 68px 66px; }
+  .ear-r { transform-origin: 132px 66px; }
+  .tail { transform-origin: 150px 152px; will-change: transform; animation: wagTail 0.4s ease-in-out infinite alternate; }
   @keyframes wagTail {
-    from { transform: rotate(-14deg); }
-    to   { transform: rotate(18deg); }
+    from { transform: rotate(-12deg); }
+    to   { transform: rotate(16deg); }
   }
-  .eyes-open { animation: blinkEyes 3.4s infinite; transform-origin: 100px 88px; }
-  @keyframes blinkEyes {
-    0%, 92%, 98%, 100% { transform: scaleY(1); }
-    95%                { transform: scaleY(0.08); }
-  }
-  .tongue { transform-origin: 100px 114px; animation: pant 0.45s ease-in-out infinite alternate; }
-  @keyframes pant {
-    from { transform: scaleY(0.92); }
-    to   { transform: scaleY(1.14); }
-  }
-  .paw-l { animation: tapPaw 0.22s ease-in-out infinite alternate; }
-  .paw-r { animation: tapPaw 0.22s ease-in-out 0.11s infinite alternate; }
+  .eyes-open { transform-origin: 100px 88px; }
+  .tongue { transform-origin: 100px 114px; }
+  .paw-l { will-change: transform; animation: tapPaw 0.24s ease-in-out infinite alternate; }
+  .paw-r { will-change: transform; animation: tapPaw 0.24s ease-in-out 0.12s infinite alternate; }
   @keyframes tapPaw {
     from { transform: translateY(0); }
-    to   { transform: translateY(-7px); }
+    to   { transform: translateY(-6px); }
   }
   .cool-glasses {
     opacity: 0;
@@ -277,13 +258,7 @@
   @keyframes dropGlasses {
     to { opacity: 1; transform: translateY(0); }
   }
-  .screen-glow {
-    animation: pulseGlow 0.9s ease-in-out infinite alternate;
-  }
-  @keyframes pulseGlow {
-    from { opacity: 0.45; }
-    to   { opacity: 0.9; }
-  }
+  .screen-glow { opacity: 0.65; }
 
   /* Right Side: Speech + Steps + Paw Progress */
   .speech-col {

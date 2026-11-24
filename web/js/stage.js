@@ -145,26 +145,25 @@
   const particles = new Particles(document.getElementById('gl'));
   particles.warmup();
 
-  // Build heavy 3D shapes & room text shapes gradually one-by-one (zero main-thread freeze)
-  const asyncPrep = ['four', 'wave', 'road', 'ring', 'sun', 'heart', 'infinity'];
-  const roomsPage = SHOW.pages.find((pg) => pg.type === 'rooms');
-  if (roomsPage && roomsPage.stays) {
-    roomsPage.stays.forEach((s, i) => {
-      if (!s.future) asyncPrep.push(() => particles.addTextShape('room' + i, s.room, { height: 2.1 }));
-    });
-  }
-  if (SHOW.photoShapes) {
-    Object.entries(SHOW.photoShapes).forEach(([key, url]) => {
-      asyncPrep.push(() => particles.loadPhotoShape(key, url, { width: 3.6 }));
-    });
-  }
-  particles.prepareAsync(asyncPrep, 180);
+  let heavyPrepStarted = false;
+  function startHeavyPrep() {
+    if (heavyPrepStarted) return;
+    heavyPrepStarted = true;
+    const asyncPrep = ['four', 'wave', 'road', 'ring', 'sun', 'heart', 'infinity'];
+    const roomsPage = SHOW.pages.find((pg) => pg.type === 'rooms');
+    if (roomsPage && roomsPage.stays) {
+      roomsPage.stays.forEach((s, i) => {
+        if (!s.future) asyncPrep.push(() => particles.addTextShape('room' + i, s.room, { height: 2.1 }));
+      });
+    }
+    if (SHOW.photoShapes) {
+      Object.entries(SHOW.photoShapes).forEach(([key, url]) => {
+        asyncPrep.push(() => particles.loadPhotoShape(key, url, { width: 3.6 }));
+      });
+    }
+    particles.prepareAsync(asyncPrep, 180);
 
-  // Pre-decode all photo assets in background so page transitions paint with 0ms image decode hitch
-  (function preloadImages() {
     const urls = new Set();
-    if (SHOW.kakaoIntro && SHOW.kakaoIntro.photo) urls.add(SHOW.kakaoIntro.photo);
-    (SHOW.wordBursts || []).forEach((w) => w.bg && urls.add(w.bg));
     (SHOW.ring || []).forEach((u) => urls.add(u));
     SHOW.pages.forEach((pg) => {
       (pg.polaroids || []).forEach((m) => !isVideo(m.src) && urls.add(m.src));
@@ -177,9 +176,26 @@
       const im = new Image();
       im.src = list[idx++];
       if (im.decode) im.decode().catch(() => {});
-      setTimeout(stepImg, 120);
+      setTimeout(stepImg, 140);
     };
-    setTimeout(stepImg, 400);
+    setTimeout(stepImg, 250);
+  }
+
+  // Only preload the 6 tiny prelude images during prelude so 8GB Macs stay silky smooth
+  (function preloadPreludeImages() {
+    const urls = new Set();
+    if (SHOW.kakaoIntro && SHOW.kakaoIntro.photo) urls.add(SHOW.kakaoIntro.photo);
+    (SHOW.wordBursts || []).forEach((w) => w.bg && urls.add(w.bg));
+    const list = [...urls];
+    let idx = 0;
+    const step = () => {
+      if (idx >= list.length) return;
+      const im = new Image();
+      im.src = list[idx++];
+      if (im.decode) im.decode().catch(() => {});
+      setTimeout(step, 140);
+    };
+    setTimeout(step, 200);
   })();
 
   /* ---------------- State & Timers ---------------- */
@@ -220,6 +236,7 @@
   /* ---------------- 1. PRELUDE: Multi-window Firework Show ---------------- */
   function enterStage() {
     if (!preludeActive && document.body.classList.contains('stage-on')) return;
+    startHeavyPrep();
     preludeActive = false;
     clearTimers();
     closeAllSatellites();
@@ -296,9 +313,9 @@
         spawnWin('kakao', `kakao.html?${q.toString()}`, 0.5, 0.5, 650, 420);
       });
 
-      const stamps = kk.stamps || [];
+      const stamps = (kk.stamps || []).slice(0, 2);
       stamps.forEach((st, idx) => {
-        after(curT + 0.95 + idx * 0.95, () => {
+        after(curT + 1.15 + idx * 1.45, () => {
           sendFx({ t: 'sfx', kind: 'pawTap', x: st.x, step: idx });
           sendFx({ t: 'burst', x: st.x, y: st.y, type: idx % 2 === 0 ? 'glitter' : 'heart', palette: idx % 2 === 0 ? 'gold' : 'rose', size: 0.65 });
           const sq = new URLSearchParams({
