@@ -671,11 +671,90 @@ body.stage-on .hud {
   position: relative;
   width: 100%;
   aspect-ratio: 440 / 400;
-  filter: drop-shadow(0 10px 18px rgba(12, 7, 4, 0.42));
-  transition: filter 0.2s ease;
+  /* Zero CSS filter: drop-shadow here so WebKit composites all 7 rotating bones directly on GPU! */
 }
-.k-actor.k-companion:hover .k-rig {
-  filter: drop-shadow(0 8px 20px rgba(246, 208, 138, 0.58));
+
+/* Floating Playful "Kakao Hacked Khuê's Mac" Ribbon Banner (Prelude only) */
+.k-hack-banner {
+  position: absolute;
+  left: 50%;
+  top: 22px;
+  transform: translate3d(-50%, -90px, 0) scale(0.92);
+  opacity: 0;
+  padding: 11px 24px 10px;
+  border-radius: 999px;
+  background: linear-gradient(160deg, #241912 0%, #150e0a 100%);
+  border: 1.5px solid rgba(245, 206, 138, 0.62);
+  box-shadow: 0 14px 32px -8px rgba(0, 0, 0, 0.62);
+  color: #fdf6ea;
+  text-align: center;
+  z-index: 8;
+  will-change: transform, opacity;
+  transition: transform 0.55s cubic-bezier(.18, 1.28, .32, 1), opacity 0.4s ease, border-color 0.4s ease, background 0.4s ease;
+}
+.k-hack-banner.is-in {
+  opacity: 1;
+  transform: translate3d(-50%, 0, 0) scale(1);
+}
+.k-hack-banner.is-out {
+  opacity: 0;
+  transform: translate3d(-50%, -60px, 0) scale(0.9);
+}
+.k-hack-banner.is-unlocked {
+  background: linear-gradient(160deg, #35161f 0%, #1c0b10 100%);
+  border-color: rgba(255, 174, 196, 0.78);
+}
+.k-hb-title {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+  color: #f8d79c;
+  white-space: nowrap;
+}
+.k-hack-banner.is-unlocked .k-hb-title {
+  color: #ffc8d8;
+}
+.k-hb-sub {
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.k-hb-paws {
+  display: inline-flex;
+  gap: 5px;
+}
+.k-hb-paw {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: rgba(255, 240, 214, 0.12);
+  display: grid;
+  place-items: center;
+  transition: background 0.3s ease, transform 0.3s cubic-bezier(.18, 1.4, .32, 1);
+}
+.k-hb-paw svg {
+  width: 11px;
+  height: 11px;
+  fill: rgba(255, 240, 214, 0.32);
+}
+.k-hb-paw.lit {
+  background: #e39a4c;
+  transform: scale(1.12);
+}
+.k-hb-paw.lit svg {
+  fill: #fffdf9;
+}
+.k-hack-banner.is-unlocked .k-hb-paw.lit {
+  background: #e57590;
+}
+.k-hb-status {
+  font-family: var(--hand-body);
+  font-size: 12.5px;
+  color: rgba(253, 246, 234, 0.86);
+  white-space: nowrap;
 }
 
 .k-mode {

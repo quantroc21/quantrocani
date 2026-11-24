@@ -3,7 +3,7 @@
    16k hạt 3D biến hình mượt giữa các hình khối & ghép thành ảnh thật có màu
    ===================================================================== */
 (function () {
-  const N = 16000;
+  const N = 12000;
   const TAU = Math.PI * 2;
   const rand = (a, b) => a + Math.random() * (b - a);
   const gauss = () => (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;

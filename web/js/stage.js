@@ -269,6 +269,8 @@
   function runPrelude() {
     clearTimers();
     clearPageTimers();
+    particles.stop();
+    atmo.stop();
     if (kakaoPack) kakaoPack.clearAll();
     fullLetterMode = false;
     document.body.classList.remove('full-letter', 'finale-mode', 'rooms-mode', 'backdrop-warm');
@@ -316,7 +318,7 @@
       actWin('n1', 'out');
     });
 
-    /* ---- Act 1: Animated Pack of Kakao Puppies Begging for the Park (No boxy task cards!) ---- */
+    /* ---- Act 1 (~12.8s): Chiến dịch đàn Kakao hack máy chị Khuê đòi đi công viên ---- */
     let curT = 3.05;
     const kk = SHOW.kakaoIntro;
     if (kk && kakaoPack) {
@@ -324,12 +326,12 @@
         kakaoPack.runPrelude(kk, sendFx);
       });
 
-      after(curT + 7.25, () => {
+      after(curT + 12.85, () => {
         kakaoPack.scatterPrelude();
         sendFx({ t: 'flash', x: 0.5, y: 0.5, r: 280, life: 0.45, color: '#fff3dc' });
       });
 
-      curT += 7.85;
+      curT += 13.50;
     } else {
       curT = 3.25;
     }

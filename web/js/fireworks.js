@@ -34,9 +34,15 @@
     spriteCache.set(color, c);
     return c;
   }
+  const rgbCache = new Map();
   function hexA(hex, a) {
-    const n = parseInt(hex.slice(1), 16);
-    return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`;
+    let rgb = rgbCache.get(hex);
+    if (!rgb) {
+      const n = parseInt(hex.slice(1), 16);
+      rgb = `${n >> 16},${(n >> 8) & 255},${n & 255}`;
+      rgbCache.set(hex, rgb);
+    }
+    return `rgba(${rgb},${a})`;
   }
 
   /* ---------------- Audio ---------------- */
@@ -447,12 +453,12 @@
 
     /* ---- particle factory ---- */
     _p(x, y, vx, vy, o) {
-      if (this.parts.length > 7500) return null;
+      if (this.parts.length > 1600) return null;
       const p = {
         x, y, vx, vy, age: 0,
         life: o.life || 80, color: o.color, size: o.size || 3,
         drag: o.drag || 0.955, grav: o.grav !== undefined ? o.grav : 0.06,
-        trail: !!o.trail, hist: o.trail ? [] : null, flicker: o.flicker || 0,
+        trail: !!o.trail, flicker: o.flicker || 0,
         strobe: !!o.strobe, glitter: o.glitter || 0, onDeath: o.onDeath || null,
       };
       this.parts.push(p);
@@ -605,7 +611,9 @@
         p.age += dt;
         if (p.age >= p.life) {
           if (p.onDeath) p.onDeath(p);
-          this.parts.splice(i, 1);
+          const last = this.parts.length - 1;
+          if (i !== last) this.parts[i] = this.parts[last];
+          this.parts.pop();
           continue;
         }
         const ox = p.x, oy = p.y;
@@ -634,7 +642,7 @@
 
       const active = this.parts.length || this.rockets.length || this.flashes.length || this.shockwaves.length;
       if (!active) {
-        if (++this.idleFrames > 60) {
+        if (++this.idleFrames > 24) {
           g.globalCompositeOperation = 'source-over';
           g.clearRect(0, 0, W, H);
           this.running = false;

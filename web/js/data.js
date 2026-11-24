@@ -17,20 +17,22 @@ window.SHOW = {
 
   /* ---- PRELUDE: thông báo trượt ra ở góc màn hình ---- */
   notifications: [
-    { title: 'Khuê ơi', body: 'Ủa tiếng chân ai chạy lạch bạch vô màn hình của em kìa...' },
-    { title: 'Gâu gâu!! 🐾', body: 'Chị Khuê mở máy mà chưa dẫn Kakao đi công viên hảaa?!' },
+    { title: 'Cảnh báo hệ thống 🐾', body: 'Phát hiện một hacker bốn chân vừa xâm nhập MacBook của Khuê...' },
+    { title: 'Gâu gâu!! Hacker Kakao đây!', body: 'Bỏ tay khỏi chuột nha chị Khuê, máy tính bị Kakao hack rồi!' },
   ],
 
-  /* ---- ĐÀN KAKAO QUẬY MÀN HÌNH ĐẦU SHOW & CHẠY CHƠI TRONG LÚC ĐỌC THƯ ---- */
+  /* ---- MÀN 1 (~13s): CHIẾN DỊCH KAKAO HACK MÁY CHỊ KHUÊ & CHẠY CHƠI LÚC ĐỌC THƯ ---- */
   kakaoIntro: {
     photo: 'assets/real_photos/kakao_sleep.jpg',
+    bannerTitle: '🐾 MÁY TÍNH CỦA CHỊ KHUÊ ĐÃ BỊ KAKAO HACK! 🐾',
+    bannerDone:  '❤️ KAKAO MỞ KHÓA MÁY — NHƯỜNG SÂN KHẤU CHO ANH QUÂN ❤️',
     preludeLines: {
-      leash:    'Gâu gâu!! Đàn Kakao chiếm máy rồi, dẫn đi công viên mới trả nha! 🌳🐾',
-      peek:     'Ủa mở máy tính mà hổng dẫn Kakao đi công viên hả chị Khuê?!',
-      belly:    'Nằm lăn ra ăn vạ luôn! Gãi bụng 10 cái mới cho xem tiếp!',
-      zoom:     'Đi công viên bắt bướm thôiii gâu gâu!! 🦋',
-      realize:  'Ủa khoan... hôm nay kỷ niệm 4 năm của anh Quân với chị Khuê hả?!',
-      handover: 'Thôi hôm nay Kakao nhịn đi công viên 1 bữa! Nhường sân khấu cho anh Quân chúc mừng chị Khuê nè ❤️',
+      leash:    'Hehe Kakao hack khóa máy chị Khuê rồi! Dẫn đi công viên mới mở khóa nha! 🌳🐾',
+      peek:     'Mật khẩu mở MacBook hôm nay là: Dắt Kakao đi công viên 3 vòng!!',
+      belly:    'Hack luôn chuột cảm ứng rồi! Nằm ăn vạ chờ gãi bụng 10 cái nè!',
+      zoom:     'Đang lục ổ cứng tìm chỗ giấu bánh thưởng với kho ảnh kỷ niệm... 🦋',
+      realize:  'Ủa khoan... trong ổ cứng có thư bí mật kỷ niệm 4 năm anh Quân gửi chị Khuê nè!!',
+      handover: 'Thôi hôm nay Kakao tha không hack nữa, nhịn đi công viên 1 bữa! Chị Khuê xem quà của anh Quân nha ❤️',
     },
   },
 
