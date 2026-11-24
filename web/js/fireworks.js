@@ -579,15 +579,15 @@
       for (let i = this.rockets.length - 1; i >= 0; i--) {
         const r = this.rockets[i];
         const k = Math.max(0, Math.min(1, (now - r.t0) / r.dur));
-        const e = r.streak ? k * k * (3 - 2 * k) : 1 - Math.pow(1 - k, 2.2);
+        const e = r.streak ? k * k * (0.35 + 0.65 * k) : 1 - Math.pow(1 - k, 2.2);
         const px = r.x, py = r.y;
         r.x = r.x0 + (r.x1 - r.x0) * e;
         r.y = r.y0 + (r.y1 - r.y0) * e;
         const col = r.streak ? '#ffe2ad' : '#ffe9c4';
         g.strokeStyle = hexA(col, 0.9);
-        g.lineWidth = r.streak ? 2.4 : 1.6;
+        g.lineWidth = r.streak ? 3.0 : 1.6;
         g.beginPath(); g.moveTo(px, py); g.lineTo(r.x, r.y); g.stroke();
-        const sp = sprite(col), s = (r.streak ? 22 : 16) * this.S + 6;
+        const sp = sprite(col), s = (r.streak ? 28 : 16) * this.S + 6;
         g.drawImage(sp, r.x - s / 2, r.y - s / 2, s, s);
         if (Math.random() < 0.9 * dt) {
           this._p(r.x, r.y, rand(-0.5, 0.5), rand(0, 1.2), { color: '#f6c46f', life: rand(18, 34), size: 1.8, grav: 0.03, drag: 0.92 });

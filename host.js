@@ -18,6 +18,10 @@ const SKIP_PRELUDE = envStr('ANNIV_SKIP', '0') === '1';
 const START_PAGE = envStr('ANNIV_PAGE', '');
 
 function quitAll() {
+  if (convergeTimer) {
+    try { convergeTimer.invalidate; } catch (_) {}
+    convergeTimer = null;
+  }
   for (const k of [...satellites.keys()]) closeSatellite(k);
   app.terminate(null);
 }
@@ -52,6 +56,8 @@ let stageWin = null;
 let stageWv = null;
 let overlayWin = null;
 let overlayWv = null;
+let convergeState = null;
+let convergeTimer = null;
 
 function makeConfig(handler) {
   const conf = $.WKWebViewConfiguration.alloc.init;
@@ -165,6 +171,35 @@ function closeSatellite(id) {
   try { sat.win.close; } catch (_) {}
 }
 
+function startConverge(ids, durSec) {
+  if (convergeTimer) {
+    try { convergeTimer.invalidate; } catch (_) {}
+    convergeTimer = null;
+  }
+  const items = [];
+  (ids || []).forEach((id) => {
+    const sat = satellites.get(String(id));
+    if (!sat) return;
+    const f = sat.win.frame;
+    items.push({
+      id: String(id),
+      x0: f.origin.x,
+      y0: f.origin.y,
+      tx: Math.round(SX + SW * 0.5 - f.size.width * 0.5),
+      ty: Math.round(SY + SH * 0.5 - f.size.height * 0.5),
+    });
+  });
+  if (!items.length) return;
+  convergeState = { items, t0: Date.now(), durMs: Math.max(200, (Number(durSec) || 0.58) * 1000) };
+  convergeTimer = $.NSTimer.scheduledTimerWithTimeIntervalTargetSelectorUserInfoRepeats(
+    0.016,
+    hostHandler,
+    'convergeTick:',
+    null,
+    true
+  );
+}
+
 ObjC.registerSubclass({
   name: 'AnnivHostHandler',
   superclass: 'NSObject',
@@ -196,6 +231,9 @@ ObjC.registerSubclass({
             case 'act':
               actSatellite(msg.id, msg.name);
               break;
+            case 'converge':
+              startConverge(msg.ids, msg.dur);
+              break;
             case 'close':
               closeSatellite(msg.id);
               break;
@@ -218,6 +256,30 @@ ObjC.registerSubclass({
           }
         } catch (err) {
           console.log('host err:', err, raw);
+        }
+      },
+    },
+    'convergeTick:': {
+      types: ['void', ['id']],
+      implementation: function (tmr) {
+        if (!convergeState) {
+          try { tmr.invalidate; } catch (_) {}
+          return;
+        }
+        const k = Math.min(1, (Date.now() - convergeState.t0) / convergeState.durMs);
+        const e = k * k * (0.35 + 0.65 * k);
+        for (let i = 0; i < convergeState.items.length; i++) {
+          const it = convergeState.items[i];
+          const sat = satellites.get(it.id);
+          if (!sat) continue;
+          const nx = it.x0 + (it.tx - it.x0) * e;
+          const ny = it.y0 + (it.ty - it.y0) * e;
+          try { sat.win.setFrameOrigin($.NSMakePoint(nx, ny)); } catch (_) {}
+        }
+        if (k >= 1) {
+          convergeState = null;
+          convergeTimer = null;
+          try { tmr.invalidate; } catch (_) {}
         }
       },
     },

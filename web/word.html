@@ -55,8 +55,27 @@
     text-align: center;
     overflow: hidden;
     opacity: 0;
+    will-change: transform, opacity;
     transform: scale(1.85) rotate(var(--rot, 0deg));
-    animation: slam 0.72s cubic-bezier(.16, 1.26, .3, 1) forwards, hoverFloat 4.2s ease-in-out 0.8s infinite;
+    animation: slam 0.72s cubic-bezier(.16, 1.26, .3, 1) forwards;
+  }
+  .plaque.settled {
+    opacity: 1;
+    transform: scale(1) rotate(var(--rot, 0deg));
+    animation: hoverFloat 4.2s ease-in-out infinite;
+  }
+
+  /* GPU-friendly energy glow overlay for charge + implode (avoids heavy filter/box-shadow repaints) */
+  .core-glow {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    pointer-events: none;
+    border-radius: inherit;
+    background: radial-gradient(circle at 50% 50%, rgba(255, 252, 240, 0.95) 0%, rgba(255, 224, 158, 0.72) 55%, rgba(245, 198, 118, 0.35) 100%);
+    opacity: 0;
+    will-change: opacity;
+    transition: opacity 0.45s ease;
   }
 
   /* ---- TONE 1: GOLD OBSIDIAN VELVET ---- */
@@ -273,25 +292,33 @@
   }
 
   body.charge .plaque {
-    animation: tremble 0.12s linear infinite;
-    box-shadow: 0 0 68px rgba(255, 226, 165, 0.72), 0 0 0 2px #fff2d6;
-    filter: brightness(1.25);
+    opacity: 1;
+    animation: tremble 0.11s linear infinite;
+  }
+  body.charge .core-glow {
+    opacity: 0.48;
   }
   @keyframes tremble {
-    0%   { transform: translate(-2px, 1px) scale(1.03) rotate(var(--rot, 0deg)); }
-    25%  { transform: translate(2px, -1px) scale(1.04) rotate(var(--rot, 0deg)); }
-    50%  { transform: translate(-1px, -2px) scale(1.03) rotate(var(--rot, 0deg)); }
-    75%  { transform: translate(2px, 2px) scale(1.04) rotate(var(--rot, 0deg)); }
-    100% { transform: translate(0, 0) scale(1.03) rotate(var(--rot, 0deg)); }
+    0%   { opacity: 1; transform: translate(-2px, 1px) scale(1.03) rotate(var(--rot, 0deg)); }
+    25%  { opacity: 1; transform: translate(2px, -1px) scale(1.04) rotate(var(--rot, 0deg)); }
+    50%  { opacity: 1; transform: translate(-1px, -2px) scale(1.03) rotate(var(--rot, 0deg)); }
+    75%  { opacity: 1; transform: translate(2px, 2px) scale(1.04) rotate(var(--rot, 0deg)); }
+    100% { opacity: 1; transform: translate(0, 0) scale(1.03) rotate(var(--rot, 0deg)); }
   }
 
+  body.out .ring { opacity: 0; animation: none; }
+  body.out .core-glow {
+    opacity: 0.96;
+    transition: opacity 0.28s ease-in;
+  }
   body.out .plaque {
-    animation: implode 0.55s cubic-bezier(.7, 0, .84, 0) forwards;
+    opacity: 1;
+    animation: implode 0.58s cubic-bezier(.52, 0, .88, .35) forwards;
   }
   @keyframes implode {
-    0%   { opacity: 1; transform: scale(1.03) rotate(var(--rot, 0deg)); filter: brightness(1.3); }
-    45%  { opacity: 1; transform: scale(1.12) rotate(0deg); filter: brightness(2.6); }
-    100% { opacity: 0; transform: scale(0.05) rotate(0deg); filter: brightness(3.8); }
+    0%   { opacity: 1; transform: scale(1.03) rotate(var(--rot, 0deg)); }
+    62%  { opacity: 0.95; transform: scale(0.30) rotate(0deg); border-radius: 40px; }
+    100% { opacity: 0; transform: scale(0.04) rotate(0deg); border-radius: 50%; }
   }
 </style>
 </head>
@@ -309,6 +336,7 @@
     <div class="word" id="word"></div>
     <div class="sheen"></div>
     <div class="impact"></div>
+    <div class="core-glow"></div>
   </div>
 </div>
 <script src="js/host.js"></script>
@@ -347,13 +375,22 @@
     }
   }
 
+  const plaqueEl = document.getElementById('plaque');
+  setTimeout(() => {
+    if (!document.body.classList.contains('charge') && !document.body.classList.contains('out')) {
+      plaqueEl.classList.add('settled');
+    }
+  }, 740);
+
   window.ACT = (name) => {
     if (name === 'charge') {
+      plaqueEl.classList.remove('settled');
       document.body.classList.add('charge');
     } else if (name === 'implode') {
+      plaqueEl.classList.remove('settled');
       document.body.classList.remove('charge');
       document.body.classList.add('out');
-      setTimeout(() => Host.post({ cmd: 'close', id }), 580);
+      setTimeout(() => Host.post({ cmd: 'close', id }), 620);
     }
   };
 </script>

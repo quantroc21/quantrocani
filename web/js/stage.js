@@ -63,6 +63,17 @@
         } else if (msg.cmd === 'act') {
           const targets = msg.id === '*' ? [...devFrames.values()] : [devFrames.get(msg.id)].filter(Boolean);
           targets.forEach((f) => f.contentWindow && f.contentWindow.postMessage({ __act: msg.name }, '*'));
+        } else if (msg.cmd === 'converge') {
+          const dur = Number(msg.dur) || 0.58;
+          (msg.ids || []).forEach((id) => {
+            const f = devFrames.get(id);
+            if (!f) return;
+            const w = parseFloat(f.style.width) || 280;
+            const h = parseFloat(f.style.height) || 180;
+            f.style.transition = `left ${dur}s cubic-bezier(.52, 0, .88, .35), top ${dur}s cubic-bezier(.52, 0, .88, .35)`;
+            f.style.left = Math.round(window.innerWidth * 0.5 - w * 0.5) + 'px';
+            f.style.top = Math.round(window.innerHeight * 0.5 - h * 0.5) + 'px';
+          });
         } else if (msg.cmd === 'close') {
           const f = devFrames.get(msg.id);
           if (f) {
@@ -241,7 +252,7 @@
     clearTimers();
     Host.post({ cmd: 'close', id: 'pctrl' });
     closeAllSatellites();
-    document.body.classList.remove('prelude-on');
+    document.body.classList.remove('prelude-on', 'backdrop-warm');
     document.body.classList.add('stage-on');
     Host.post({ cmd: 'showStage' });
     atmo.start();
@@ -257,7 +268,7 @@
     clearTimers();
     clearPageTimers();
     fullLetterMode = false;
-    document.body.classList.remove('full-letter', 'finale-mode', 'rooms-mode');
+    document.body.classList.remove('full-letter', 'finale-mode', 'rooms-mode', 'backdrop-warm');
     btnFull.textContent = 'Xem nguyên bức thư';
 
     preludeActive = true;
@@ -406,6 +417,11 @@
       sendFx({ t: 'launch', x: 0.5, y: 0.30, type: 'doubleHeart', palette: 'rose', size: 1.4, dur: 0.9, delay: 0.25 });
     });
 
+    // Warm up 3D shapes & Polaroid decodes quietly during the calm 6.4s hold so enterStage() has 0ms hitch!
+    after(tAfterWords + 0.55, () => {
+      startHeavyPrep();
+    });
+
     // Second celebratory wave while all 5 cards stay glowing on screen
     const holdSec = Number(SHOW.wordHoldSec) || 6.2;
     after(tAfterWords + Math.min(2.8, holdSec * 0.45), () => {
@@ -420,24 +436,27 @@
       words.forEach((_, i) => actWin('w' + i, 'charge'));
     });
 
-    const tImplode = tCharge + 0.48;
+    const convDur = 0.58;
+    const tImplode = tCharge + 0.50;
     after(tImplode, () => {
+      document.body.classList.add('backdrop-warm');
       sendFx({ t: 'sfx', kind: 'implode' });
+      Host.post({ cmd: 'converge', ids: words.map((_, i) => 'w' + i), dur: convDur });
       words.forEach((wb, i) => {
         actWin('w' + i, 'implode');
-        sendFx({ t: 'streak', x0: wb.x, y0: wb.y, x: 0.5, y: 0.5, dur: 0.68, delay: i * 0.03, palette: 'gold' });
+        sendFx({ t: 'streak', x0: wb.x, y0: wb.y, x: 0.5, y: 0.5, dur: convDur, palette: 'gold' });
       });
-      [[0.12, 0.14], [0.88, 0.14], [0.12, 0.86], [0.88, 0.86], [0.5, 0.1]].forEach(([sx, sy], j) => {
-        sendFx({ t: 'streak', x0: sx, y0: sy, x: 0.5, y: 0.5, dur: 0.68, delay: 0.06 + j * 0.03, palette: 'gold' });
+      [[0.12, 0.14], [0.88, 0.14], [0.12, 0.86], [0.88, 0.86]].forEach(([sx, sy], j) => {
+        sendFx({ t: 'streak', x0: sx, y0: sy, x: 0.5, y: 0.5, dur: convDur, delay: j * 0.02, palette: 'gold' });
       });
     });
 
-    after(tImplode + 0.78, () => {
+    after(tImplode + convDur + 0.02, () => {
       sendFx({ t: 'sfx', kind: 'supernova' });
-      sendFx({ t: 'flash', x: 0.5, y: 0.5, r: 540, life: 0.8, color: '#fff3dc' });
-      sendFx({ t: 'salvo', count: 9, type: 'brocade', palette: 'gold', y: 0.24, spread: 0.86, dur: 1.05 });
-      sendFx({ t: 'burst', x: 0.5, y: 0.32, type: 'doubleHeart', palette: 'rose', size: 1.45 });
-      enterStage();
+      sendFx({ t: 'flash', x: 0.5, y: 0.5, r: 520, life: 0.8, color: '#fff3dc' });
+      sendFx({ t: 'burst', x: 0.5, y: 0.5, type: 'doubleHeart', palette: 'rose', size: 1.45 });
+      sendFx({ t: 'salvo', count: 6, type: 'brocade', palette: 'gold', y: 0.24, spread: 0.84, dur: 1.05 });
+      requestAnimationFrame(() => enterStage());
     });
   }
 
