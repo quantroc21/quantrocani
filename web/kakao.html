@@ -26,6 +26,33 @@
     color: var(--ink);
   }
 
+  /* ================== MODE 0: PRELUDE MINI CONTROLS PILL ================== */
+  body.mode-controls .main-wrap,
+  body.mode-controls .stamp-wrap { display: none; }
+  .ctrl-wrap {
+    display: none;
+    position: absolute;
+    inset: 6px 8px;
+    align-items: center;
+    gap: 8px;
+  }
+  body.mode-controls .ctrl-wrap { display: flex; }
+  .ctrl-btn {
+    appearance: none;
+    border: 1px solid rgba(245, 224, 190, 0.35);
+    background: rgba(22, 17, 14, 0.88);
+    color: #f4ede2;
+    font-family: 'Be Vietnam Pro', -apple-system, sans-serif;
+    font-size: 12.5px;
+    font-weight: 500;
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+    transition: background 0.2s ease, transform 0.15s ease;
+  }
+  .ctrl-btn:hover { background: rgba(44, 33, 26, 0.96); transform: translateY(-1px); }
+
   /* ================== MODE 1: CORNER PAW STICKER STAMP ================== */
   body.mode-stamp .main-wrap { display: none; }
   .stamp-wrap {
@@ -394,6 +421,12 @@
 </head>
 <body>
 
+<!-- MODE CONTROLS -->
+<div class="ctrl-wrap">
+  <button class="ctrl-btn" id="c-skip">Mở bức thư ngay</button>
+  <button class="ctrl-btn" id="c-quit">Đóng ✕</button>
+</div>
+
 <!-- MODE STAMP -->
 <div class="stamp-wrap">
   <div class="stamp-pill" id="stamp-pill">
@@ -540,7 +573,11 @@
   const id = Host.q('id', 'kakao');
   const mode = Host.q('mode', 'main');
 
-  if (mode === 'stamp') {
+  if (mode === 'controls') {
+    document.body.classList.add('mode-controls');
+    document.getElementById('c-skip').onclick = () => Host.post({ cmd: 'skipPrelude' });
+    document.getElementById('c-quit').onclick = () => Host.post({ cmd: 'quit' });
+  } else if (mode === 'stamp') {
     document.body.classList.add('mode-stamp');
     const rot = parseFloat(Host.q('rot', '-4')) || -4;
     document.getElementById('stamp-pill').style.setProperty('--rot', rot + 'deg');

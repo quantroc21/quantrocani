@@ -17,25 +17,22 @@ const BASE_URL = envStr('ANNIV_URL', ''); // e.g. http://127.0.0.1:PORT
 const SKIP_PRELUDE = envStr('ANNIV_SKIP', '0') === '1';
 const START_PAGE = envStr('ANNIV_PAGE', '');
 
+function quitAll() {
+  for (const k of [...satellites.keys()]) closeSatellite(k);
+  app.terminate(null);
+}
+
 ObjC.registerSubclass({
   name: 'KeyWin',
-  superclass: 'NSWindow',
+  superclass: 'NSPanel',
   methods: {
     'canBecomeKeyWindow': { types: ['bool', []], implementation: function () { return true; } },
     'canBecomeMainWindow': { types: ['bool', []], implementation: function () { return true; } },
+    'cancelOperation:': {
+      types: ['void', ['id']],
+      implementation: function () { quitAll(); },
+    },
   },
-});
-
-// Native Esc (keyCode 53) monitor so Esc ALWAYS exits immediately even if WebView is busy
-$.NSEvent.addLocalMonitorForEventsMatchingMaskHandler(1 << 10, function (ev) {
-  try {
-    if (ev.keyCode === 53) {
-      for (const k of [...satellites.keys()]) closeSatellite(k);
-      app.terminate(null);
-      return null;
-    }
-  } catch (_) {}
-  return ev;
 });
 
 const scr = $.NSScreen.mainScreen.frame;
@@ -49,6 +46,7 @@ const satellites = new Map();
 const MAX_SATELLITES = 10;
 const sharedPool = $.WKProcessPool.alloc.init;
 let overlayReady = false;
+let stageReady = false;
 const fxQueue = [];
 let stageWin = null;
 let stageWv = null;
@@ -82,14 +80,19 @@ function loadPage(wv, relUrl) {
   }
 }
 
-function makeWindow(rect, level, ignoresMouse, handler) {
-  const win = $.KeyWin.alloc.initWithContentRectStyleMaskBackingDefer(rect, 0, 2, false);
+// styleMask 128 = NSWindowStyleMaskNonActivatingPanel (renders over Full-Screen Spaces too!)
+// collectionBehavior: 1 (CanJoinAllSpaces) | 16 (Stationary) | 64 (IgnoresCycle) | 256 (FullScreenAuxiliary)
+function makeWindow(rect, level, ignoresMouse, handler, nonActivating = true) {
+  const mask = nonActivating ? 128 : 0;
+  const win = $.KeyWin.alloc.initWithContentRectStyleMaskBackingDefer(rect, mask, 2, false);
+  win.setFloatingPanel(true);
+  win.setHidesOnDeactivate(false);
   win.setOpaque(false);
   win.setBackgroundColor($.NSColor.clearColor);
   win.setLevel(level);
   win.setHasShadow(false);
   win.setIgnoresMouseEvents(ignoresMouse);
-  win.setCollectionBehavior(1 | 16); // CanJoinAllSpaces | Stationary
+  win.setCollectionBehavior(1 | 16 | 64 | 256);
 
   const conf = makeConfig(handler);
   const wv = $.WKWebView.alloc.initWithFrameConfiguration(
@@ -119,7 +122,6 @@ function spawnSatellite(msg) {
   const id = String(msg.id || ('w_' + Date.now()));
   if (satellites.has(id)) return;
 
-  // Enforce cap to protect 8GB/16GB RAM
   if (satellites.size >= MAX_SATELLITES) {
     const firstKey = satellites.keys().next().value;
     closeSatellite(firstKey);
@@ -135,10 +137,11 @@ function spawnSatellite(msg) {
   const x = Math.round(Math.max(SX + 8, Math.min(SX + SW - W - 8, cx - W / 2)));
   const y = Math.round(Math.max(SY + 8, Math.min(SY + SH - H - 8, SY + SH - cyTop - H / 2)));
 
-  const { win, wv } = makeWindow($.NSMakeRect(x, y, W, H), 1000, true, hostHandler);
+  const interactive = Boolean(msg.interactive);
+  const { win, wv } = makeWindow($.NSMakeRect(x, y, W, H), 1002, !interactive, hostHandler, true);
   satellites.set(id, { win, wv });
   loadPage(wv, msg.url);
-  win.orderFront(null);
+  win.orderFrontRegardless;
 }
 
 function actSatellite(id, name) {
@@ -156,12 +159,10 @@ function closeSatellite(id) {
   const sat = satellites.get(key);
   if (!sat) return;
   satellites.delete(key);
-  try {
-    sat.wv.stopLoading();
-    sat.win.orderOut(null);
-    sat.win.setContentView(null);
-    sat.win.close();
-  } catch (_) {}
+  try { sat.wv.stopLoading; } catch (_) {}
+  try { sat.wv.removeFromSuperview; } catch (_) {}
+  try { sat.win.orderOut(null); } catch (_) {}
+  try { sat.win.close; } catch (_) {}
 }
 
 ObjC.registerSubclass({
@@ -179,7 +180,9 @@ ObjC.registerSubclass({
 
           switch (msg.cmd) {
             case 'ready':
-              if (msg.who === 'overlay') {
+              if (msg.who === 'stage') {
+                stageReady = true;
+              } else if (msg.who === 'overlay') {
                 overlayReady = true;
                 while (fxQueue.length) evalIn(overlayWv, fxQueue.shift());
               }
@@ -196,19 +199,34 @@ ObjC.registerSubclass({
             case 'close':
               closeSatellite(msg.id);
               break;
+            case 'hideStage':
+              if (stageWin) stageWin.setIgnoresMouseEvents(true);
+              break;
+            case 'skipPrelude':
+              evalIn(stageWv, 'window.__enterStage && window.__enterStage();');
+              break;
             case 'showStage':
               if (stageWin) {
+                stageWin.setIgnoresMouseEvents(false);
                 stageWin.makeKeyAndOrderFront(null);
                 app.activateIgnoringOtherApps(true);
               }
               break;
             case 'quit':
-              for (const k of [...satellites.keys()]) closeSatellite(k);
-              app.terminate(null);
+              quitAll();
               break;
           }
         } catch (err) {
           console.log('host err:', err, raw);
+        }
+      },
+    },
+    'watchdogTick:': {
+      types: ['void', ['id']],
+      implementation: function () {
+        if (!stageReady) {
+          console.log('Watchdog: stage.html did not report ready within 5s; aborting safely.');
+          quitAll();
         }
       },
     },
@@ -217,26 +235,38 @@ ObjC.registerSubclass({
 
 const hostHandler = $.AnnivHostHandler.alloc.init;
 
-// 1. Stage window (level 998)
+// 1. Stage window (level 998) — click-through during prelude so desktop NEVER locks up!
 {
-  const created = makeWindow(scr, 998, false, hostHandler);
+  const created = makeWindow(scr, 998, !SKIP_PRELUDE, hostHandler, false);
   stageWin = created.win;
   stageWv = created.wv;
   const qp = [];
   if (SKIP_PRELUDE) qp.push('skip=1');
   if (START_PAGE !== '') qp.push('page=' + encodeURIComponent(START_PAGE));
   loadPage(stageWv, qp.length ? 'stage.html?' + qp.join('&') : 'stage.html');
-  stageWin.makeKeyAndOrderFront(null);
+  stageWin.orderFrontRegardless;
+  if (SKIP_PRELUDE) {
+    stageWin.makeKeyAndOrderFront(null);
+    app.activateIgnoringOtherApps(true);
+  }
 }
 
 // 2. Fireworks transparent overlay window on top of everything (level 1001, click-through)
 {
-  const created = makeWindow(scr, 1001, true, hostHandler);
+  const created = makeWindow(scr, 1001, true, hostHandler, true);
   overlayWin = created.win;
   overlayWv = created.wv;
   loadPage(overlayWv, 'overlay.html');
-  overlayWin.orderFront(null);
+  overlayWin.orderFrontRegardless;
 }
 
-app.activateIgnoringOtherApps(true);
+// Safety watchdog: if stage.html fails to load within 5.5s (e.g. server killed), auto-exit immediately
+$.NSTimer.scheduledTimerWithTimeIntervalTargetSelectorUserInfoRepeats(
+  5.5,
+  hostHandler,
+  'watchdogTick:',
+  null,
+  false
+);
+
 app.run;

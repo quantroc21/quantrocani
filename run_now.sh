@@ -52,9 +52,12 @@ if ! mkdir "$LOCK_DIR" 2>/dev/null; then
 fi
 echo "$$" > "$LOCK_DIR/pid"
 
+trap '' HUP
 SRV_PID=""
+HOST_PID=""
 PORT_FILE="/tmp/anniv_port_$$"
 cleanup() {
+  if [ -n "$HOST_PID" ]; then kill "$HOST_PID" 2>/dev/null || true; fi
   if [ -n "$SRV_PID" ]; then kill "$SRV_PID" 2>/dev/null || true; fi
   rm -f "$PORT_FILE"
   rm -rf "$LOCK_DIR" 2>/dev/null || true
@@ -137,7 +140,10 @@ export ANNIV_SKIP="$SKIP"
 export ANNIV_PAGE="$START_PAGE"
 
 log "Launching host.js..."
-/usr/bin/osascript -l JavaScript "$ROOT/host.js"
+/usr/bin/osascript -l JavaScript "$ROOT/host.js" &
+HOST_PID=$!
+wait "$HOST_PID" || true
+HOST_PID=""
 log "Show exited cleanly."
 
 if [ "$ONCE" -eq 1 ]; then

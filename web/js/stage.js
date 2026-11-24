@@ -80,8 +80,8 @@
   function sendFx(data) {
     Host.post({ cmd: 'fx', data });
   }
-  function spawnWin(id, url, x, y, w, h) {
-    Host.post({ cmd: 'spawn', id, url, x, y, w, h });
+  function spawnWin(id, url, x, y, w, h, interactive = false) {
+    Host.post({ cmd: 'spawn', id, url, x, y, w, h, interactive });
   }
   function actWin(id, name) {
     Host.post({ cmd: 'act', id, name });
@@ -239,6 +239,7 @@
     startHeavyPrep();
     preludeActive = false;
     clearTimers();
+    Host.post({ cmd: 'close', id: 'pctrl' });
     closeAllSatellites();
     document.body.classList.remove('prelude-on');
     document.body.classList.add('stage-on');
@@ -249,6 +250,8 @@
     const startPage = Math.max(0, Math.min(SHOW.pages.length - 1, parseInt(Host.q('page', '0'), 10) || 0));
     showPage(startPage);
   }
+
+  window.__enterStage = enterStage;
 
   function runPrelude() {
     clearTimers();
@@ -265,6 +268,12 @@
     if (Host.q('skip', '0') === '1') {
       enterStage();
       return;
+    }
+
+    if (Host.native) {
+      document.querySelector('.prelude-ui')?.setAttribute('hidden', '');
+      Host.post({ cmd: 'hideStage' });
+      spawnWin('pctrl', 'kakao.html?id=pctrl&mode=controls', 0.14, 0.93, 275, 54, true);
     }
 
     const days = calcDays();
@@ -873,5 +882,6 @@
   }, { once: true });
 
   Soundtrack.start();
+  Host.post({ cmd: 'ready', who: 'stage' });
   runPrelude();
 })();
