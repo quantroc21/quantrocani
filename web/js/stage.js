@@ -326,12 +326,12 @@
         kakaoPack.runPrelude(kk, sendFx);
       });
 
-      after(curT + 12.85, () => {
+      after(curT + 13.25, () => {
         kakaoPack.scatterPrelude();
         sendFx({ t: 'flash', x: 0.5, y: 0.5, r: 280, life: 0.45, color: '#fff3dc' });
       });
 
-      curT += 13.50;
+      curT += 13.90;
     } else {
       curT = 3.25;
     }

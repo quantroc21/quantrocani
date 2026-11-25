@@ -281,6 +281,34 @@
         return;
       }
 
+      if (kind === 'keyClack') {
+        // Playful tactile mechanical-keyboard clack burst while Kakao mashes keys!
+        const clicks = 5;
+        for (let i = 0; i < clicks; i++) {
+          const dtClick = i * 0.068 + rand(0, 0.015);
+          const src = c.createBufferSource(); src.buffer = this.noise;
+          const bp = c.createBiquadFilter(); bp.type = 'bandpass';
+          bp.frequency.value = rand(1650, 2600); bp.Q.value = 2.6;
+          const g = c.createGain();
+          g.gain.setValueAtTime(0.0001, t + dtClick);
+          g.gain.linearRampToValueAtTime(0.14, t + dtClick + 0.004);
+          g.gain.exponentialRampToValueAtTime(0.0006, t + dtClick + 0.038);
+          src.connect(bp).connect(g).connect(out);
+          src.start(t + dtClick, Math.random()); src.stop(t + dtClick + 0.045);
+
+          // Tiny woody thock undertone
+          const o = c.createOscillator(), og = c.createGain();
+          o.type = 'triangle';
+          o.frequency.setValueAtTime(rand(290, 410), t + dtClick);
+          o.frequency.exponentialRampToValueAtTime(120, t + dtClick + 0.03);
+          og.gain.setValueAtTime(0.08, t + dtClick);
+          og.gain.exponentialRampToValueAtTime(0.0005, t + dtClick + 0.035);
+          o.connect(og).connect(out);
+          o.start(t + dtClick); o.stop(t + dtClick + 0.04);
+        }
+        return;
+      }
+
       if (kind === 'kakaoDone') {
         // Cheerful ascending bell sparkle when Kakao finishes hacking
         [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((hz, k) => {

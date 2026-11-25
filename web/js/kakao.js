@@ -1,17 +1,26 @@
 /* =====================================================================
    KAKAO 60/120-FPS MULTI-BONE SKELETAL PUPPET ENGINE
-   - Toàn bộ chuyển động chạy bằng khớp xương 2D mượt ở 60fps / 120fps ProMotion GPU:
-     1. Chạy / Tha dây dắt (trot & leash): 7 khớp độc lập (đuôi vẫy + 2 chân xa + thân nhún
-        + 2 chân gần sải chéo đối pha + đầu gật gù chớp mắt + dây dắt đỏ đung đưa ở miệng)
-     2. Ngồi (sit): Thân ngồi vững trên sàn + đuôi vẫy phía sau + đầu nghiêng qua lại + mắt chớp
-     3. Nằm ngửa (belly): Đuôi vẫy tít tách rời khỏi thân lăn bụng hồng
-     4. Nhảy bật (jump): Tung người lên không trung vui sướng
+   - Màn 1 (~13.5s): Kakao Đại Ca đeo kính râm ngồi GIỮA MÀN HÌNH đập phím MacBook
+     lạch cạch ở 60/120fps (kèm âm bàn phím cơ & đồng bọn chạy quanh đòi đi công viên),
+     tới khúc gõ trúng thư mục mật 4 năm của anh Quân thì rớt kính râm mắt tròn xoe
+     rồi giơ cả 2 chân hoan hô mở khóa nhường sân khấu!
+   - Màn 2 (trong lúc đọc thư): Bé Kakao chạy lon ton 4 chân mượt 60/120fps ở 2 bên lề,
+     tha dây dắt đòi đi công viên, lăn bụng, ngồi nghiêng đầu chớp mắt & cho click nựng.
    ===================================================================== */
 (function () {
   const rand = (a, b) => a + Math.random() * (b - a);
   const pick = (arr) => arr[(Math.random() * arr.length) | 0];
 
   const ASSETS = [
+    'assets/kakao/hack_tail.png',
+    'assets/kakao/hack_paw_far.png',
+    'assets/kakao/hack_body.png',
+    'assets/kakao/hack_head_cool.png',
+    'assets/kakao/hack_head_tongue.png',
+    'assets/kakao/hack_laptop.png',
+    'assets/kakao/hack_paw_near.png',
+    'assets/kakao/hack_shock.png',
+    'assets/kakao/hack_cheer.png',
     'assets/kakao/run_tail.png',
     'assets/kakao/run_leg_br.png',
     'assets/kakao/run_leg_fr.png',
@@ -30,7 +39,7 @@
     'assets/kakao/belly_body.png',
   ];
 
-  // Pre-decode toàn bộ bộ phận xương ngay khi khởi động để hiện mượt 0ms
+  // Pre-decode toàn bộ mảnh xương ngay khi mở để chuyển trạng thái 0ms
   ASSETS.forEach((src) => {
     const im = new Image();
     im.src = src;
@@ -45,7 +54,16 @@
     return im;
   }
 
-  function createPuppetDOM({ pose = 'sit', size = 152, faceRight = true, text = '', photo = '', hero = false, companion = false } = {}) {
+  function createPuppetDOM({
+    pose = 'sit',
+    size = 152,
+    faceRight = true,
+    text = '',
+    photo = '',
+    hero = false,
+    companion = false,
+    withHackerRig = false,
+  } = {}) {
     const wrap = document.createElement('div');
     wrap.className = 'k-actor' + (hero ? ' k-hero' : '') + (companion ? ' k-companion' : '');
     wrap.style.width = size + 'px';
@@ -60,8 +78,6 @@
 
     const rig = document.createElement('div');
     rig.className = 'k-rig';
-    // Đặt lệch pha ngẫu nhiên nhẹ để đàn 5 bé Kakao không bước rập khuôn như robot!
-    rig.style.setProperty('--phase', (-rand(0, 1.2)).toFixed(2) + 's');
     flipWrap.appendChild(rig);
 
     // 1) 7-BONE 60/120FPS TROT & LEASH RIG
@@ -87,7 +103,7 @@
     trotGroup.append(runTail, runLegBR, runLegFR, runTorso, runLegBL, runLegFL, runHeadWrap);
     rig.appendChild(trotGroup);
 
-    // 2) MULTI-PART SIT PUPPET RIG (đuôi vẫy + thân tĩnh + đầu nghiêng + mắt chớp!)
+    // 2) MULTI-PART SIT PUPPET RIG
     const sitGroup = document.createElement('div');
     sitGroup.className = 'k-mode k-mode-sit';
     const sitTail = makeLayerImg('assets/kakao/sit_tail.png', 'k-sit-tail');
@@ -117,6 +133,29 @@
     jumpImg.draggable = false;
     jumpGroup.appendChild(jumpImg);
     rig.appendChild(jumpGroup);
+
+    // 5) CENTER-SCREEN LAPTOP HACKER RIG (only mounted on Hero Hacker Kakao to save DOM!)
+    let hackParts = null;
+    if (withHackerRig) {
+      const hackGroup = document.createElement('div');
+      hackGroup.className = 'k-mode k-mode-hack';
+      const hackTail    = makeLayerImg('assets/kakao/hack_tail.png', 'k-hack-tail');
+      const hackPawFar  = makeLayerImg('assets/kakao/hack_paw_far.png', 'k-hack-paw-far');
+      const hackBody    = makeLayerImg('assets/kakao/hack_body.png', 'k-hack-body');
+      const hackHeadWrap = document.createElement('div');
+      hackHeadWrap.className = 'k-layer k-hack-head-wrap';
+      const hackHeadCool   = makeLayerImg('assets/kakao/hack_head_cool.png', 'k-hack-head-cool');
+      const hackHeadTongue = makeLayerImg('assets/kakao/hack_head_tongue.png', 'k-hack-head-tongue');
+      hackHeadWrap.append(hackHeadCool, hackHeadTongue);
+      const hackLaptop  = makeLayerImg('assets/kakao/hack_laptop.png', 'k-hack-laptop');
+      const hackPawNear = makeLayerImg('assets/kakao/hack_paw_near.png', 'k-hack-paw-near');
+      const hackShock   = makeLayerImg('assets/kakao/hack_shock.png', 'k-hack-shock');
+      const hackCheer   = makeLayerImg('assets/kakao/hack_cheer.png', 'k-hack-cheer');
+
+      hackGroup.append(hackTail, hackPawFar, hackBody, hackHeadWrap, hackLaptop, hackPawNear, hackShock, hackCheer);
+      rig.appendChild(hackGroup);
+      hackParts = { hackGroup, hackTail, hackPawFar, hackBody, hackHeadWrap, hackLaptop, hackPawNear, hackShock, hackCheer };
+    }
 
     if (photo) {
       const badge = document.createElement('div');
@@ -156,6 +195,8 @@
       bellyGroup,
       bellyTail,
       jumpGroup,
+      hackParts,
+      hackSpeed: 1,
       pose: '',
       faceRight,
       moving: pose === 'trot' || pose === 'leash',
@@ -171,6 +212,7 @@
   }
 
   function shouldMirror(pose, faceRight) {
+    if (pose.startsWith('hack_')) return false;
     if (pose === 'trot' || pose === 'leash') return !faceRight;
     if (pose === 'jump') return faceRight;
     if (pose === 'sit') return !faceRight;
@@ -183,13 +225,34 @@
     actor.flipWrap.classList.toggle('is-mirrored', shouldMirror(pose, faceRight));
 
     const isTrot = pose === 'trot' || pose === 'leash';
+    const isHack = pose.startsWith('hack_');
+
     actor.trotGroup.style.display = isTrot ? 'block' : 'none';
     actor.leashProp.style.display = pose === 'leash' ? 'block' : 'none';
     actor.sitGroup.style.display = pose === 'sit' ? 'block' : 'none';
     actor.bellyGroup.style.display = pose === 'belly' ? 'block' : 'none';
     actor.jumpGroup.style.display = pose === 'jump' ? 'block' : 'none';
 
-    if (pose === 'sit') {
+    if (actor.hackParts) {
+      const hp = actor.hackParts;
+      hp.hackGroup.style.display = isHack ? 'block' : 'none';
+      if (isHack) {
+        const typing = pose === 'hack_type' || pose === 'hack_fast';
+        hp.hackPawFar.style.display  = typing ? 'block' : 'none';
+        hp.hackBody.style.display    = typing ? 'block' : 'none';
+        hp.hackHeadWrap.style.display = typing ? 'block' : 'none';
+        hp.hackLaptop.style.display  = typing ? 'block' : 'none';
+        hp.hackPawNear.style.display = typing ? 'block' : 'none';
+        hp.hackHeadWrap.classList.toggle('is-tongue', pose === 'hack_fast');
+        hp.hackShock.style.display   = pose === 'hack_shock' ? 'block' : 'none';
+        hp.hackCheer.style.display   = pose === 'hack_cheer' ? 'block' : 'none';
+        actor.hackSpeed = pose === 'hack_fast' ? 1.42 : 1.0;
+      }
+    }
+
+    if (isHack) {
+      actor.rig.style.aspectRatio = '1 / 1';
+    } else if (pose === 'sit') {
       actor.rig.style.aspectRatio = '286 / 440';
     } else if (pose === 'belly') {
       actor.rig.style.aspectRatio = '440 / 381';
@@ -199,8 +262,7 @@
   }
 
   /* =====================================================================
-     CONTROLLER (Toàn bộ khớp chân/đuôi/đầu chạy bằng CSS GPU @ 60/120fps;
-     JS chỉ điều phối chớp mắt tự nhiên & kịch bản chạy nhảy!)
+     CONTROLLER
      ===================================================================== */
   class KakaoPackController {
     constructor(layer) {
@@ -244,12 +306,41 @@
         const a = this.actors[i];
         const ph = a.phase;
 
-        // 1) Điều khiển trực tiếp 7 khớp xương bằng rAF 60/120Hz (không bao giờ bị kẹt CSS WebKit!)
+        // 0) CENTER HACKER KAKAO FURIOUSLY MASHING LAPTOP KEYBOARD AT 60/120FPS!
+        if (a.pose.startsWith('hack_') && a.hackParts) {
+          const hp = a.hackParts;
+          const tailSpd = a.pose === 'hack_cheer' ? 18 : a.pose === 'hack_shock' ? 6 : 13;
+          const tailDeg = Math.sin(t * tailSpd + ph) * (a.pose === 'hack_shock' ? 8 : 16);
+          hp.hackTail.style.transform = `rotate3d(0, 0, 1, ${tailDeg.toFixed(1)}deg)`;
+
+          if (a.pose === 'hack_type' || a.pose === 'hack_fast') {
+            const g = t * 21 * a.hackSpeed + ph; // tốc độ đập phím lạch cạch siêu hài!
+            // Far paw: -40deg (đập xuống bàn phím sau màn hình) <-> +8deg (giơ cao khoe đệm chân!)
+            const farDeg = -16 + Math.sin(g) * 24;
+            // Near paw: ngược pha hoàn toàn với far paw (-18deg giơ lên <-> +10deg đập xuống phím!)
+            const nearDeg = -4 - Math.sin(g) * 14;
+            const headDeg = Math.sin(g * 0.5) * 3.8;
+            const bodyBob = -Math.abs(Math.sin(g)) * 2.5;
+
+            hp.hackPawFar.style.transform = `rotate3d(0, 0, 1, ${farDeg.toFixed(1)}deg)`;
+            hp.hackPawNear.style.transform = `rotate3d(0, 0, 1, ${nearDeg.toFixed(1)}deg)`;
+            hp.hackHeadWrap.style.transform = `rotate3d(0, 0, 1, ${headDeg.toFixed(1)}deg)`;
+            hp.hackGroup.style.transform = `translate3d(0, ${bodyBob.toFixed(1)}px, 0)`;
+          } else if (a.pose === 'hack_cheer') {
+            const hop = -Math.abs(Math.sin(t * 9.5)) * 7;
+            hp.hackGroup.style.transform = `translate3d(0, ${hop.toFixed(1)}px, 0)`;
+          } else {
+            hp.hackGroup.style.transform = 'translate3d(0, 0, 0)';
+          }
+          continue;
+        }
+
+        // 1) 7-Bone 60/120Hz Trot & Leash Rig
         if (a.pose === 'trot' || a.pose === 'leash') {
           const targetAmp = a.moving ? 1 : 0;
           a.walkAmp += (targetAmp - a.walkAmp) * (1 - Math.exp(-dt * 12));
 
-          const g = t * 11.2 + ph; // tần số sải chân mượt tự nhiên
+          const g = t * 11.2 + ph;
           const sA = Math.sin(g) * 25 * a.walkAmp;
           const sB = -sA;
           const bob = -Math.abs(Math.sin(g)) * 5.5 * a.walkAmp;
@@ -279,7 +370,7 @@
           a.bellyTail.style.transform = `rotate3d(0, 0, 1, ${tailDeg.toFixed(1)}deg)`;
         }
 
-        // 2) Chớp mắt tự nhiên cho cả lúc chạy lẫn lúc ngồi
+        // 2) Chớp mắt tự nhiên
         if (a.happyHold > 0) {
           a.happyHold -= dt;
           a.sitHeadWrap.classList.add('is-blinking');
@@ -321,19 +412,18 @@
       this.actors = [];
       this.preludeActors = [];
       this.companion = null;
-      this.hackBanner = null;
       if (this.layer) this.layer.innerHTML = '';
     }
 
-    _popHearts(xPct, yPct, count = 4) {
+    _popSymbols(xPct, yPct, symbols = ['❤️', '🐾'], count = 4) {
       if (!this.layer) return;
       for (let i = 0; i < count; i++) {
         const h = document.createElement('span');
         h.className = 'k-float-heart';
-        h.textContent = i % 3 === 1 ? '🐾' : '❤️';
-        h.style.left = `calc(${xPct}% + ${rand(-28, 28).toFixed(0)}px)`;
-        h.style.top = `calc(${yPct}% + ${rand(-24, 6).toFixed(0)}px)`;
-        h.style.animationDelay = (i * 0.08) + 's';
+        h.textContent = symbols[i % symbols.length];
+        h.style.left = `calc(${xPct}% + ${rand(-32, 32).toFixed(0)}px)`;
+        h.style.top = `calc(${yPct}% + ${rand(-20, 6).toFixed(0)}px)`;
+        h.style.animationDelay = (i * 0.09) + 's';
         this.layer.appendChild(h);
         setTimeout(() => h.remove(), 1350);
       }
@@ -350,205 +440,183 @@
       setTimeout(() => p.remove(), 1600);
     }
 
-    /* ---------------- 1. PRELUDE (~12.8s): CHIẾN DỊCH KAKAO HACK MÁY CHỊ KHUÊ ---------------- */
+    /* ---------------- 1. PRELUDE (~13.2s): KAKAO NGỒI GIỮA MÀN HÌNH ĐẬP PHÍM MACBOOK ---------------- */
     runPrelude(cfg = {}, sendFx = () => {}) {
       this.clearAll();
       this.sendFx = sendFx;
       if (!this.layer) return;
 
       const lines = cfg.preludeLines || {};
+      let boss = null;
 
-      // Băng rôn nổi dễ thương trên đỉnh màn hình báo máy đã bị Kakao hack + thanh 5 dấu chân tiến trình!
-      const banner = document.createElement('div');
-      banner.className = 'k-hack-banner';
-      const pawIcon = '<svg viewBox="0 0 24 24"><path d="M8.5 5.5a2.3 2.8 0 1 0 0 5.6 2.3 2.8 0 0 0 0-5.6zm7 0a2.3 2.8 0 1 0 0 5.6 2.3 2.8 0 0 0 0-5.6zM4.5 10.2a2 2.5 0 1 0 0 5 2 2.5 0 0 0 0-5zm15 0a2 2.5 0 1 0 0 5 2 2.5 0 0 0 0-5zM12 12.2c-3.1 0-5.6 2.3-5.6 4.9 0 1.7 1.3 2.7 3 2.7 1.1 0 1.8-.4 2.6-.4s1.5.4 2.6.4c1.7 0 3-1 3-2.7 0-2.6-2.5-4.9-5.6-4.9z"/></svg>';
-      banner.innerHTML = `
-        <div class="k-hb-title" id="k-hb-title">${cfg.bannerTitle || '🐾 MÁY TÍNH CỦA CHỊ KHUÊ ĐÃ BỊ KAKAO HACK! 🐾'}</div>
-        <div class="k-hb-sub">
-          <div class="k-hb-paws">${[0, 1, 2, 3, 4].map((i) => `<span class="k-hb-paw${i === 0 ? ' lit' : ''}">${pawIcon}</span>`).join('')}</div>
-          <span class="k-hb-status" id="k-hb-status">Đang khóa bàn phím đòi đi công viên... 25%</span>
-        </div>
-      `;
-      this.layer.appendChild(banner);
-      this.hackBanner = banner;
-      const pawDots = [...banner.querySelectorAll('.k-hb-paw')];
-      const statusEl = banner.querySelector('#k-hb-status');
-      const titleEl = banner.querySelector('#k-hb-title');
-      const setHackProgress = (litCount, msg) => {
-        pawDots.forEach((el, idx) => el.classList.toggle('lit', idx < litCount));
-        if (statusEl) statusEl.textContent = msg;
-      };
-      requestAnimationFrame(() => banner.classList.add('is-in'));
-
-      // 0.0s — Hacker Trưởng #1: Sải 4 chân tha dây dắt đỏ vào hack khóa máy!
+      // 0.0s — ĐẠI CA KAKAO ĐEO KÍNH RÂM BẬT LÊN NGAY GIỮA MÀN HÌNH ĐẬP PHÍM MACBOOK LẠCH CẠCH!
       this._after(0, () => {
-        sendFx({ t: 'sfx', kind: 'kakaoPop', x: 0.24 });
-        const a1 = this._addActor({
-          pose: 'leash',
-          size: 168,
-          faceRight: true,
-          text: lines.leash || 'Hehe Kakao hack khóa máy chị Khuê rồi! Dẫn đi công viên mới mở khóa nha! 🌳🐾',
+        sendFx({ t: 'sfx', kind: 'kakaoPop', x: 0.5 });
+        sendFx({ t: 'sfx', kind: 'keyClack', x: 0.5 });
+        boss = this._addActor({
+          pose: 'hack_type',
+          size: 245,
+          hero: true,
+          withHackerRig: true,
+          text: lines.hackStart || 'Hehe chị Khuê sơ hở là Kakao nhảy lên bàn phím hack khóa MacBook liền!',
         });
-        a1.wrap.style.left = '-14%';
-        a1.wrap.style.top = '66%';
-        this.preludeActors.push({ actor: a1, exitX: '-16%', exitY: '66%', exitRight: false });
+        boss.wrap.style.left = '50%';
+        boss.wrap.style.top = '55%';
+        boss.wrap.style.zIndex = '6';
+        boss.wrap.style.transform = 'translate3d(-50%, -50%, 0) scale(0.28)';
+        this.preludeActors.push({ actor: boss, exitX: '50%', exitY: '118%', exitRight: true, isBoss: true });
 
         requestAnimationFrame(() => {
-          a1.wrap.style.transition = 'left 1.45s cubic-bezier(.22, .61, .36, 1), top 0.55s ease, opacity 0.4s ease';
-          a1.wrap.style.left = '22%';
+          boss.wrap.style.transition = 'transform 0.62s cubic-bezier(.18, 1.32, .32, 1), top 0.62s ease, opacity 0.45s ease';
+          boss.wrap.style.transform = 'translate3d(-50%, -50%, 0) scale(1)';
         });
-        [260, 560, 860, 1160].forEach((ms, i) => this._after(ms, () => this._dropPaw(4 + i * 5, 74)));
-        this._after(1420, () => {
+
+        // Tiếng gõ bàn phím lạch cạch + icon bay ra từ màn hình MacBook trong lúc gõ!
+        [1100, 2600, 4100, 5600, 7000].forEach((ms, idx) => {
+          this._after(ms, () => {
+            if (!this.actors.includes(boss)) return;
+            sendFx({ t: 'sfx', kind: 'keyClack', x: 0.5 });
+            this._popSymbols(46, 54, ['🐾', '🔑', '🦴'], 3);
+            if (idx === 2) {
+              // Tới giây 4.1: Đại ca thè lưỡi tập trung đập phím nhanh gấp rưỡi!
+              setActorPose(boss, 'hack_fast', true);
+              boss.bubble.textContent =
+                lines.hackFast || 'Đang gõ lệnh khóa chuột nè... lạch cạch lạch cạch... Cấm tắt máy nha!';
+            }
+          });
+        });
+      });
+
+      // 2.0s — Đồng bọn #1: Tha dây dắt đỏ chạy từ trái vào giục đại ca đổi mật khẩu đi công viên!
+      this._after(2000, () => {
+        sendFx({ t: 'sfx', kind: 'pawTap', x: 0.22, step: 1 });
+        const a1 = this._addActor({
+          pose: 'leash',
+          size: 162,
+          faceRight: true,
+          text: lines.leash || 'Gõ lẹ đi đại ca! Đổi mật khẩu máy thành: Dắt Kakao đi công viên 3 vòng!! 🌳🐾',
+        });
+        a1.wrap.style.left = '-14%';
+        a1.wrap.style.top = '69%';
+        this.preludeActors.push({ actor: a1, exitX: '-16%', exitY: '69%', exitRight: false });
+
+        requestAnimationFrame(() => {
+          a1.wrap.style.transition = 'left 1.4s cubic-bezier(.22, .61, .36, 1), opacity 0.4s ease';
+          a1.wrap.style.left = '19%';
+        });
+        [260, 560, 860, 1140].forEach((ms, i) => this._after(ms, () => this._dropPaw(4 + i * 4.5, 76)));
+        this._after(1380, () => {
           a1.moving = false;
         });
       });
 
-      // 1.85s — Hacker Phụ #2: Thò đầu nghiêng từ mép phải đòi mật khẩu đi công viên!
-      this._after(1850, () => {
-        sendFx({ t: 'sfx', kind: 'pawTap', x: 0.9, step: 1 });
-        setHackProgress(2, 'Đang đổi mật khẩu máy thành "Đi Công Viên"... 45%');
+      // 4.1s — Đồng bọn #2: Thò đầu nghiêng từ mép phải canh cửa!
+      this._after(4100, () => {
+        sendFx({ t: 'sfx', kind: 'pawTap', x: 0.92, step: 2 });
         const a2 = this._addActor({
           pose: 'sit',
-          size: 132,
+          size: 130,
           faceRight: false,
-          text: lines.peek || 'Mật khẩu mở MacBook hôm nay là: Dắt Kakao đi công viên 3 vòng!!',
+          text: lines.peek || 'Tụi em canh cửa cho đại ca gõ phím rồi nè!',
         });
         a2.wrap.classList.add('k-edge-right');
         a2.shadow.style.display = 'none';
         a2.flipWrap.style.transform = 'rotate(-58deg)';
         a2.wrap.style.left = '106%';
-        a2.wrap.style.top = '36%';
-        this.preludeActors.push({ actor: a2, exitX: '112%', exitY: '36%', exitRight: true, keepRot: true });
+        a2.wrap.style.top = '32%';
+        this.preludeActors.push({ actor: a2, exitX: '112%', exitY: '32%', exitRight: true, keepRot: true });
 
         requestAnimationFrame(() => {
-          a2.wrap.style.transition = 'left 0.72s cubic-bezier(.18, 1.32, .32, 1), opacity 0.4s ease';
+          a2.wrap.style.transition = 'left 0.7s cubic-bezier(.18, 1.32, .32, 1), opacity 0.4s ease';
           a2.wrap.style.left = '95%';
         });
       });
 
-      // 3.70s — Hacker #3: Hack luôn chuột cảm ứng, lăn đùng ngửa bụng ăn vạ góc phải dưới!
-      this._after(3700, () => {
-        sendFx({ t: 'sfx', kind: 'pawTap', x: 0.74, step: 2 });
-        sendFx({ t: 'burst', x: 0.74, y: 0.74, type: 'glitter', palette: 'gold', size: 0.65 });
-        setHackProgress(3, 'Đã hack khóa luôn chuột cảm ứng... 70%');
+      // 6.0s — Đồng bọn #3 (lăn bụng đè trackpad) + #4 (chạy trên lục ổ cứng tìm bánh thưởng)
+      this._after(6000, () => {
+        sendFx({ t: 'sfx', kind: 'pawTap', x: 0.78, step: 3 });
+        sendFx({ t: 'burst', x: 0.78, y: 0.74, type: 'glitter', palette: 'gold', size: 0.65 });
         const a3 = this._addActor({
           pose: 'belly',
-          size: 168,
+          size: 162,
           faceRight: true,
           photo: cfg.photo || 'assets/real_photos/kakao_sleep.jpg',
-          text: lines.belly || 'Hack luôn chuột cảm ứng rồi! Nằm ăn vạ chờ gãi bụng 10 cái nè!',
+          text: lines.belly || 'Nằm đè lên bàn di chuột ăn vạ luôn, gãi bụng 10 cái mới nhả!',
         });
-        a3.wrap.style.left = '75%';
+        a3.wrap.style.left = '80%';
         a3.wrap.style.top = '75%';
         a3.wrap.style.transform = 'translate3d(-50%, -50%, 0) scale(0.28)';
         this.preludeActors.push({ actor: a3, exitX: '116%', exitY: '75%', exitRight: true });
 
         requestAnimationFrame(() => {
-          a3.wrap.style.transition = 'transform 0.62s cubic-bezier(.18, 1.35, .32, 1), left 0.55s ease, opacity 0.4s ease';
+          a3.wrap.style.transition = 'transform 0.6s cubic-bezier(.18, 1.35, .32, 1), left 0.55s ease, opacity 0.4s ease';
           a3.wrap.style.transform = 'translate3d(-50%, -50%, 0) scale(1)';
         });
-      });
 
-      // 5.55s — Hacker #4: Chạy lục lọi ổ cứng tìm bánh thưởng & kho ảnh kỷ niệm!
-      this._after(5550, () => {
-        sendFx({ t: 'sfx', kind: 'pawTap', x: 0.35, step: 3 });
-        setHackProgress(4, 'Đang đánh hơi dữ liệu ổ cứng của chị Khuê... 90%');
         const a4 = this._addActor({
           pose: 'trot',
-          size: 154,
+          size: 146,
           faceRight: false,
-          text: lines.zoom || 'Đang lục ổ cứng tìm chỗ giấu bánh thưởng với kho ảnh kỷ niệm... 🦋',
+          text: lines.zoom || 'Tiện tay lục ổ cứng tìm chỗ giấu bánh thưởng luôn gâu gâu!! 🦋',
         });
         const bf = document.createElement('span');
         bf.className = 'k-butterfly';
         bf.textContent = '🦋';
         a4.wrap.appendChild(bf);
-
         a4.wrap.style.left = '110%';
-        a4.wrap.style.top = '28%';
-        this.preludeActors.push({ actor: a4, exitX: '-16%', exitY: '26%', exitRight: false });
+        a4.wrap.style.top = '22%';
+        this.preludeActors.push({ actor: a4, exitX: '-16%', exitY: '22%', exitRight: false });
 
         requestAnimationFrame(() => {
-          a4.wrap.style.transition = 'left 1.85s linear, opacity 0.4s ease';
-          a4.wrap.style.left = '25%';
+          a4.wrap.style.transition = 'left 1.8s linear, opacity 0.4s ease';
+          a4.wrap.style.left = '22%';
         });
-        [300, 660, 1020, 1380].forEach((ms, i) => this._after(ms, () => this._dropPaw(86 - i * 15, 34)));
-        this._after(1880, () => {
+        this._after(1820, () => {
           setActorPose(a4, 'sit', true);
-          a4.wrap.style.width = '122px';
+          a4.wrap.style.width = '118px';
         });
       });
 
-      // 7.60s — Hacker #5 (Trung tâm): Phát hiện thư bí mật kỷ niệm 4 năm của anh Quân!
-      this._after(7600, () => {
+      // 8.2s — KHỰNG LẠI! Đại ca Kakao rớt kính râm, mắt tròn xoe 'o' phát hiện thư mục mật 4 năm!
+      this._after(8200, () => {
+        if (!boss || !this.actors.includes(boss)) return;
         sendFx({ t: 'sfx', kind: 'kakaoPop', x: 0.5 });
-        sendFx({ t: 'burst', x: 0.5, y: 0.50, type: 'heart', palette: 'rose', size: 0.95 });
-        setHackProgress(5, 'HACK 100% — Phát hiện tệp mật kỷ niệm 4 năm của anh Quân!');
-        const a5 = this._addActor({
-          pose: 'sit',
-          size: 148,
-          faceRight: true,
-          hero: true,
-          text: lines.realize || 'Ủa khoan... trong ổ cứng có thư bí mật kỷ niệm 4 năm anh Quân gửi chị Khuê nè!!',
-        });
-        a5.wrap.style.left = '50%';
-        a5.wrap.style.top = '54%';
-        a5.wrap.style.transform = 'translate3d(-50%, -50%, 0) scale(0.28)';
-        this.preludeActors.push({ actor: a5, exitX: '115%', exitY: '54%', exitRight: true });
+        sendFx({ t: 'burst', x: 0.47, y: 0.52, type: 'heart', palette: 'rose', size: 0.95 });
+        setActorPose(boss, 'hack_shock', true);
+        this._popSymbols(46, 52, ['❤️', '✨'], 4);
+        boss.bubble.textContent =
+          lines.realize || 'Ủa khoan... gõ nhầm vô thư mục mật thấy bức thư kỷ niệm 4 năm anh Quân gửi chị Khuê nè!!';
+      });
 
-        requestAnimationFrame(() => {
-          a5.wrap.style.transition = 'transform 0.62s cubic-bezier(.18, 1.35, .32, 1), left 0.65s linear, opacity 0.4s ease';
-          a5.wrap.style.transform = 'translate3d(-50%, -50%, 0) scale(1)';
-        });
-
-        // 9.85s — Mở khóa nhường sân khấu (giữ đủ ~3s để Khuê đọc trọn câu chốt!)
-        this._after(2250, () => {
-          sendFx({ t: 'sfx', kind: 'kakaoDone', x: 0.5 });
-          sendFx({ t: 'burst', x: 0.5, y: 0.28, type: 'doubleHeart', palette: 'rose', size: 1.15 });
-          banner.classList.add('is-unlocked');
-          if (titleEl) {
-            titleEl.textContent = cfg.bannerDone || '❤️ KAKAO MỞ KHÓA MÁY — NHƯỜNG SÂN KHẤU CHO ANH QUÂN ❤️';
-          }
-          setHackProgress(5, 'Đã mở khóa! Chúc mừng kỷ niệm 4 năm hai anh chị!');
-
-          a5.happyHold = 2.4;
-          setActorPose(a5, 'jump', false);
-          a5.wrap.style.width = '168px';
-          a5.bubble.textContent =
-            lines.handover || 'Thôi hôm nay Kakao tha không hack nữa, nhịn đi công viên 1 bữa! Chị Khuê xem quà của anh Quân nha ❤️';
-          this._popHearts(50, 46, 5);
-          this._popHearts(22, 60, 3);
-          this._popHearts(75, 68, 3);
-
-          this._after(950, () => {
-            if (this.actors.includes(a5)) {
-              setActorPose(a5, 'sit', true);
-              a5.wrap.style.width = '148px';
-            }
-          });
-        });
+      // 10.45s — GIƠ 2 CHÂN HOAN HÔ '^ ^' MỞ KHÓA TRẢ MÁY CHO CHỊ KHUÊ! (giữ tới 13.15s)
+      this._after(10450, () => {
+        if (!boss || !this.actors.includes(boss)) return;
+        sendFx({ t: 'sfx', kind: 'kakaoDone', x: 0.5 });
+        sendFx({ t: 'burst', x: 0.5, y: 0.30, type: 'doubleHeart', palette: 'rose', size: 1.2 });
+        setActorPose(boss, 'hack_cheer', true);
+        boss.bubble.textContent =
+          lines.handover || 'Thôi Kakao mở khóa trả máy, nhịn đi công viên 1 bữa! Chị Khuê đọc quà của anh Quân nha ❤️';
+        this._popSymbols(50, 46, ['❤️', '🐾', '✨'], 6);
+        this._popSymbols(19, 62, ['❤️', '🐾'], 3);
+        this._popSymbols(80, 68, ['❤️', '🐾'], 3);
       });
     }
 
     scatterPrelude() {
-      if (this.hackBanner) {
-        this.hackBanner.classList.remove('is-in');
-        this.hackBanner.classList.add('is-out');
-      }
-      this.preludeActors.forEach(({ actor, exitX, exitY, exitRight, keepRot }) => {
+      this.preludeActors.forEach(({ actor, exitX, exitY, exitRight, keepRot, isBoss }) => {
         actor.bubble.classList.remove('is-visible');
-        if (!keepRot) {
+        if (!keepRot && !isBoss) {
           actor.wrap.style.width = '156px';
           actor.moving = true;
           actor.walkAmp = 1;
           setActorPose(actor, 'trot', exitRight);
         }
-        actor.wrap.style.transition = 'left 0.68s linear, top 0.68s ease, opacity 0.48s ease 0.16s';
+        actor.wrap.style.transition = 'left 0.65s linear, top 0.62s cubic-bezier(.55, 0, .9, .4), opacity 0.48s ease 0.14s';
         actor.wrap.style.left = exitX;
         actor.wrap.style.top = exitY;
         actor.wrap.style.opacity = '0';
       });
-      this._after(720, () => {
+      this._after(700, () => {
         if (!this.companion) this.clearAll();
       });
     }
@@ -617,7 +685,7 @@
       this.sendFx({ t: 'sfx', kind: 'kakaoPop', x: this.compX / 100 });
       c.wrap.style.width = '126px';
       setActorPose(c, 'jump', this.compX < 50);
-      this._popHearts(this.compX, 83, 5);
+      this._popSymbols(this.compX, 83, ['❤️', '🐾'], 5);
       this._say(
         pick([
           'Á chị Khuê nựng Kakao kìaaa thương quá ❤️',
@@ -653,7 +721,7 @@
         this.pageKind = 'rooms';
         c.wrap.style.width = '126px';
         setActorPose(c, 'leash', this.compX < 50);
-        this._popHearts(this.compX, 84, 3);
+        this._popSymbols(this.compX, 84, ['❤️', '🐾'], 3);
         this._say('Anh chị đi vi vu về nhớ dắt Kakao bù 3 vòng công viên nha!! 🌳🐾', 4300);
         this._after(2400, () => {
           if (this.companion === c) this._setCompIdleSit(this.compX < 50);
@@ -763,7 +831,7 @@
           bf.remove();
           c.happyHold = 1.6;
           this._setCompIdleSit(this.compX < 50);
-          this._popHearts(this.compX, 84, 3);
+          this._popSymbols(this.compX, 84, ['❤️', '🐾'], 3);
           this._scheduleNextAntic(rand(5400, 6800));
         });
       } else {

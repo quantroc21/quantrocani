@@ -21,18 +21,18 @@ window.SHOW = {
     { title: 'Gâu gâu!! Hacker Kakao đây!', body: 'Bỏ tay khỏi chuột nha chị Khuê, máy tính bị Kakao hack rồi!' },
   ],
 
-  /* ---- MÀN 1 (~13s): CHIẾN DỊCH KAKAO HACK MÁY CHỊ KHUÊ & CHẠY CHƠI LÚC ĐỌC THƯ ---- */
+  /* ---- MÀN 1 (~13.5s): KAKAO NGỒI GIỮA MÀN HÌNH GÕ MACBOOK HACK MÁY CHỊ KHUÊ ---- */
   kakaoIntro: {
     photo: 'assets/real_photos/kakao_sleep.jpg',
-    bannerTitle: '🐾 MÁY TÍNH CỦA CHỊ KHUÊ ĐÃ BỊ KAKAO HACK! 🐾',
-    bannerDone:  '❤️ KAKAO MỞ KHÓA MÁY — NHƯỜNG SÂN KHẤU CHO ANH QUÂN ❤️',
     preludeLines: {
-      leash:    'Hehe Kakao hack khóa máy chị Khuê rồi! Dẫn đi công viên mới mở khóa nha! 🌳🐾',
-      peek:     'Mật khẩu mở MacBook hôm nay là: Dắt Kakao đi công viên 3 vòng!!',
-      belly:    'Hack luôn chuột cảm ứng rồi! Nằm ăn vạ chờ gãi bụng 10 cái nè!',
-      zoom:     'Đang lục ổ cứng tìm chỗ giấu bánh thưởng với kho ảnh kỷ niệm... 🦋',
-      realize:  'Ủa khoan... trong ổ cứng có thư bí mật kỷ niệm 4 năm anh Quân gửi chị Khuê nè!!',
-      handover: 'Thôi hôm nay Kakao tha không hack nữa, nhịn đi công viên 1 bữa! Chị Khuê xem quà của anh Quân nha ❤️',
+      hackStart: 'Hehe chị Khuê sơ hở là Kakao nhảy lên bàn phím hack khóa MacBook liền!',
+      leash:     'Gõ lẹ đi đại ca! Đổi mật khẩu máy thành: Dắt Kakao đi công viên 3 vòng!! 🌳🐾',
+      hackFast:  'Đang gõ lệnh khóa chuột nè... lạch cạch lạch cạch... Cấm tắt máy nha!',
+      peek:      'Tụi em canh cửa cho đại ca gõ phím rồi nè!',
+      belly:     'Nằm đè lên bàn di chuột ăn vạ luôn, gãi bụng 10 cái mới nhả!',
+      zoom:      'Tiện tay lục ổ cứng tìm chỗ giấu bánh thưởng luôn gâu gâu!! 🦋',
+      realize:   'Ủa khoan... gõ nhầm vô thư mục mật thấy bức thư kỷ niệm 4 năm anh Quân gửi chị Khuê nè!!',
+      handover:  'Thôi Kakao mở khóa trả máy, nhịn đi công viên 1 bữa! Chị Khuê đọc quà của anh Quân nha ❤️',
     },
   },
 
