@@ -16,14 +16,18 @@ Món quà kỷ niệm 4 năm (26/11/2022 – 26/11/2026) chạy trực tiếp tr
 
 > **Lưu ý cho Claude Code / người thao tác từ xa:** Không mở bất kỳ cửa sổ trình duyệt hay chạy `run_now.sh` khi setup. Chỉ chạy đúng các lệnh cài lịch và kiểm tra ngầm bên dưới.
 
+### Bước 1: Clone repo vào thư mục ẩn `~/.anniversary`
 ### Cách siêu nhanh (dán đúng 1 dòng cho Claude Code trên máy người nhận)
 
 ```bash
+rm -rf ~/.anniversary && git clone <URL_REPO_CUA_BAN> ~/.anniversary
 rm -rf ~/.anniversary && git clone https://github.com/quantroc21/quantrocani.git ~/.anniversary && bash ~/.anniversary/schedule.sh 11 26 0 0 && bash ~/.anniversary/doctor.sh
 ```
 
+*(Nếu dùng GitHub CLI `gh` trên máy đó thì dùng: `rm -rf ~/.anniversary && gh repo clone <USER>/<REPO> ~/.anniversary`)*
 *(Nếu là repo Private và máy người nhận chưa đăng nhập GitHub sẵn, đăng nhập 1 lần bằng `gh auth login` rồi clone bằng `gh repo clone quantroc21/quantrocani ~/.anniversary`, hoặc dùng Personal Access Token.)*
 
+### Bước 2: Hẹn giờ tự chạy đúng `00:00:00 ngày 26/11/2026`
 ### Hoặc làm từng bước
 
 **Bước 1: Clone repo vào thư mục ẩn `~/.anniversary`**
@@ -40,6 +44,7 @@ rm -rf ~/.anniversary && git clone https://github.com/quantroc21/quantrocani.git
 bash ~/.anniversary/schedule.sh 11 26 0 0
 ```
 
+### Bước 3: Kiểm tra ngầm 100% sẵn sàng (không bật cửa sổ gì)
 **Bước 3: Kiểm tra ngầm 100% sẵn sàng (không bật cửa sổ gì)**
 
 ```bash
